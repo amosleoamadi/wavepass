@@ -1,1 +1,18 @@
 @import "tailwindcss";
+
+* {
+  font-family: "Montserrat", sans-serif;
+}
+
+.authImg {
+  background-color: #e9e7f4;
+}
+
+@media (min-width: 768px) {
+  .authImg {
+    background-image: url("/src/assets/public/Vector.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+}
