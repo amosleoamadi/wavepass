@@ -1,9 +1,12 @@
 import { createBrowserRouter } from "react-router-dom";
 import { AuthLayout, HomeLayout } from "../components/layouts";
+import ErrorPage from "../pages/others/ErrorPage";
+import LandingPage from "../pages/home/LandingPage";
 import Register from "../pages/auth/Register";
 import VerifyEmail from "../pages/auth/VerifyEmail";
-import ForgetPassword from "../pages/auth/ForgetPassword";
 import Login from "../pages/auth/Login";
+import ForgetPassword from "../pages/auth/ForgetPassword";
+import DashboardLayout from "../pages/dashboard/layout/DashboardLayout";
 
 export const router = createBrowserRouter([
   {
@@ -13,7 +16,12 @@ export const router = createBrowserRouter([
   },
   {
     element: <AuthLayout />,
+    errorElement: <ErrorPage />,
     children: [
+      {
+        index: true,
+        element: <LandingPage />,
+      },
       {
         path: "/register",
         element: <Register />,
@@ -31,5 +39,10 @@ export const router = createBrowserRouter([
         element: <ForgetPassword />,
       },
     ],
+  },
+  {
+    path: "/dashboard",
+    element: <DashboardLayout />,
+    errorElement: <ErrorPage />,
   },
 ]);
