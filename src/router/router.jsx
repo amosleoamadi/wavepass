@@ -7,21 +7,24 @@ import VerifyEmail from "../pages/auth/VerifyEmail";
 import Login from "../pages/auth/Login";
 import ForgetPassword from "../pages/auth/ForgetPassword";
 import DashboardLayout from "../pages/dashboard/layout/DashboardLayout";
+import VerifyResetCode from "../pages/auth/VerifyResetCode";
+import ResetPassword from "../pages/auth/ResetPassword";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <HomeLayout />,
-    children: [],
-  },
-  {
-    element: <AuthLayout />,
-    errorElement: <ErrorPage />,
     children: [
       {
         index: true,
         element: <LandingPage />,
       },
+    ],
+  },
+  {
+    element: <AuthLayout />,
+    errorElement: <ErrorPage />,
+    children: [
       {
         path: "/register",
         element: <Register />,
@@ -37,6 +40,14 @@ export const router = createBrowserRouter([
       {
         path: "/forgot-password",
         element: <ForgetPassword />,
+      },
+      {
+        path: "/verify-otp",
+        element: <VerifyResetCode />,
+      },
+      {
+        path: "reset-password",
+        element: <ResetPassword />,
       },
     ],
   },
