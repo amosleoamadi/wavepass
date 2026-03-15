@@ -7,7 +7,7 @@ import {
   useResendCodeMutation,
 } from "../../services/authApi";
 
-const VerifyEmail = () => {
+const VerifyResetCode = () => {
   const [otp, setOtp] = useState(new Array(6).fill(""));
   const [errors, setErrors] = useState("");
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -135,9 +135,8 @@ const VerifyEmail = () => {
   if (isVerified) {
     return (
       <EmailVerificationSuccess
-        navigate={() => navigate("/auth")}
-        message="Email Verification Complete"
-        buttonText="Go to Login"
+        navigate={() => navigate("/auth/reset-password")}
+        buttonText="Go to Reset password"
       />
     );
   }
@@ -246,4 +245,4 @@ const VerifyEmail = () => {
   );
 };
 
-export default VerifyEmail;
+export default VerifyResetCode;
