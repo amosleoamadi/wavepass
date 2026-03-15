@@ -10,7 +10,7 @@ import {
   HomeLayout,
   LandingPage,
 } from "./LazyLoad";
-import VerifyResetCode from "../pages/auth/VerifyResetCode";
+import Overview from "../pages/dashboard/others/Overview";
 import ResetPassword from "../pages/auth/ResetPassword";
 
 export const router = createBrowserRouter([
@@ -59,5 +59,6 @@ export const router = createBrowserRouter([
     path: "/dashboard",
     element: <DashboardLayout />,
     errorElement: <ErrorPage />,
+    children: [{ path: "overview", element: <Overview /> }],
   },
 ]);
