@@ -10,6 +10,7 @@ import {
   HomeLayout,
   LandingPage,
 } from "./LazyLoad";
+import Overview from "../pages/dashboard/others/Overview";
 
 export const router = createBrowserRouter([
   {
@@ -49,5 +50,6 @@ export const router = createBrowserRouter([
     path: "/dashboard",
     element: <DashboardLayout />,
     errorElement: <ErrorPage />,
+    children: [{ path: "overview", element: <Overview /> }],
   },
 ]);
