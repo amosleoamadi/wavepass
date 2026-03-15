@@ -1,13 +1,49 @@
 import { createBrowserRouter } from "react-router-dom";
-import { HomeLayout } from "../components";
-import { DashboardLayout, ErrorPage, LandingPage } from "./LazyLoad";
+import Register from "../pages/auth/Register";
+import VerifyEmail from "../pages/auth/VerifyEmail";
+import Login from "../pages/auth/Login";
+import ForgetPassword from "../pages/auth/ForgetPassword";
+import {
+  AuthLayout,
+  DashboardLayout,
+  ErrorPage,
+  HomeLayout,
+  LandingPage,
+} from "./LazyLoad";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <HomeLayout />,
-    children: [{ index: true, element: <LandingPage /> }],
+    children: [
+      {
+        index: true,
+        element: <LandingPage />,
+      },
+    ],
+  },
+  {
+    path: "/auth",
+    element: <AuthLayout />,
     errorElement: <ErrorPage />,
+    children: [
+      {
+        path: "login",
+        element: <Login />,
+      },
+      {
+        path: "register",
+        element: <Register />,
+      },
+      {
+        path: "verify-email",
+        element: <VerifyEmail />,
+      },
+      {
+        path: "forgot-password",
+        element: <ForgetPassword />,
+      },
+    ],
   },
   {
     path: "/dashboard",
