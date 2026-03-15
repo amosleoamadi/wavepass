@@ -29,6 +29,7 @@ const VerifyEmail = () => {
         setSeconds((s) => s - 1);
       }, 1000);
     } else if (seconds === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsActive(false);
       clearInterval(interval);
     }
