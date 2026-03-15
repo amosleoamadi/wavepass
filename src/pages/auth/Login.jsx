@@ -128,7 +128,7 @@ const Login = () => {
             />
             <p className="text-left text-[12px] text-gray-500 mt-1">
               <Link
-                to="/forgot-password"
+                to="/auth/forgot-password"
                 className="text-[#241B7A] font-extrabold hover:underline"
               >
                 Forgot Password?
@@ -180,7 +180,7 @@ const Login = () => {
         <p className="text-center text-[12px] text-gray-500 pt-1">
           Don't have an account?
           <Link
-            to="/register"
+            to="register"
             className="text-[#241B7A] font-extrabold hover:underline ml-1"
           >
             sign up

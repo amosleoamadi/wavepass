@@ -53,7 +53,7 @@ const ResetPassword = () => {
   if (isSuccess) {
     return (
       <EmailVerificationSuccess
-        navigate={() => navigate("/login")}
+        navigate={() => navigate("/auth")}
         message="Your password has been reset successfully."
         buttonText="Go to Login"
       />

@@ -35,7 +35,6 @@ const VerifyEmail = () => {
         setSeconds((s) => s - 1);
       }, 1000);
     } else if (seconds === 0) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsActive(false);
       clearInterval(interval);
     }
@@ -136,7 +135,7 @@ const VerifyEmail = () => {
   if (isVerified) {
     return (
       <EmailVerificationSuccess
-        navigate={() => navigate("/login")}
+        navigate={() => navigate("/auth")}
         message="Email Verification Complete"
         buttonText="Go to Login"
       />

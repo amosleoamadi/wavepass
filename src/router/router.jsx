@@ -10,6 +10,8 @@ import {
   HomeLayout,
   LandingPage,
 } from "./LazyLoad";
+import VerifyResetCode from "../pages/auth/VerifyResetCode";
+import ResetPassword from "../pages/auth/ResetPassword";
 
 export const router = createBrowserRouter([
   {
@@ -28,7 +30,7 @@ export const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     children: [
       {
-        path: "login",
+        index: true,
         element: <Login />,
       },
       {
@@ -42,6 +44,14 @@ export const router = createBrowserRouter([
       {
         path: "forgot-password",
         element: <ForgetPassword />,
+      },
+      {
+        path: "verify-otp",
+        element: <VerifyResetCode />,
+      },
+      {
+        path: "reset-password",
+        element: <ResetPassword />,
       },
     ],
   },

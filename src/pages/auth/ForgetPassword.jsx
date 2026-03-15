@@ -24,7 +24,7 @@ const ForgetPassword = () => {
       const response = await forgotPassword({ email }).unwrap();
       setMessage(response?.message || "Verification code sent to your email");
       localStorage.setItem("userEmail", email);
-      navigate("/verify-otp");
+      navigate("/auth/verify-otp");
     } catch (err) {
       setError(
         err?.data?.message || err?.error || "Unable to send verification code",

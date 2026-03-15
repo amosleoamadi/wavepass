@@ -135,7 +135,7 @@ const VerifyResetCode = () => {
   if (isVerified) {
     return (
       <EmailVerificationSuccess
-        navigate={() => navigate("/reset-password")}
+        navigate={() => navigate("/auth/reset-password")}
         buttonText="Go to Reset password"
       />
     );
