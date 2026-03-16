@@ -8,6 +8,17 @@
   background-color: #e9e7f4;
 }
 
+.heroImg {
+  background-image: url("/src/assets/public/heroImg.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.span {
+  font-family: "Montez", cursive;
+  color: #27187e;
+}
+
 @media (min-width: 768px) {
   .authImg {
     background-image: url("/src/assets/public/Vector.png");

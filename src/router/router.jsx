@@ -9,10 +9,21 @@ import {
   ErrorPage,
   HomeLayout,
   LandingPage,
+  NotFound,
 } from "./LazyLoad";
 import Overview from "../pages/dashboard/others/Overview";
+import ResetPassword from "../pages/auth/ResetPassword";
+import VerifyResetCode from "../pages/auth/VerifyResetCode";
+import DiscoverEvents from "../pages/home/DiscoverEvents";
+import MyEvents from "../pages/dashboard/others/ManageEvents";
+import EventDetails from "../pages/dashboard/others/EventDetailPage";
+import EventFormContainer from "../pages/dashboard/others/CreateEvent";
 
 export const router = createBrowserRouter([
+  {
+    path: "*",
+    element: <NotFound />,
+  },
   {
     path: "/",
     element: <HomeLayout />,
@@ -20,6 +31,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <LandingPage />,
+      },
+      {
+        path: "/discover",
+        element: <DiscoverEvents />,
       },
     ],
   },
@@ -29,7 +44,7 @@ export const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     children: [
       {
-        path: "login",
+        index: true,
         element: <Login />,
       },
       {
@@ -44,12 +59,25 @@ export const router = createBrowserRouter([
         path: "forgot-password",
         element: <ForgetPassword />,
       },
+      {
+        path: "verify-otp",
+        element: <VerifyResetCode />,
+      },
+      {
+        path: "reset-password",
+        element: <ResetPassword />,
+      },
     ],
   },
   {
     path: "/dashboard",
     element: <DashboardLayout />,
     errorElement: <ErrorPage />,
-    children: [{ path: "overview", element: <Overview /> }],
+    children: [
+      { path: "overview", element: <Overview /> },
+      { path: "event-management", element: <MyEvents /> },
+      { path: "event-details/:id", element: <EventDetails /> },
+      { path: "create-event", element: <EventFormContainer /> },
+    ],
   },
 ]);

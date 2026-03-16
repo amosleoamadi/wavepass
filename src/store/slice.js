@@ -9,18 +9,18 @@ export const userSlice = createSlice({
   name: "wavepass",
   initialState,
   reducers: {
-    setUser: (state, action) => {
-      state.user = action.payload;
+    setCredentials: (state, action) => {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
     },
-    setToken: (state, action) => {
-      state.token = action.payload;
-    },
+
     logoutUser: (state) => {
-      ((state.user = null), (state.token = null));
+      state.user = null;
+      state.token = null;
     },
   },
 });
 
-export const { setToken, setUser, logoutUser } = userSlice.actions;
+export const { setCredentials, logoutUser } = userSlice.actions;
 
 export default userSlice.reducer;

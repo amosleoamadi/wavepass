@@ -68,7 +68,7 @@ const Register = () => {
           type: "success",
           text: response?.message || "Registration successful!",
         });
-        setTimeout(() => navigate("/verify-email"), 2500);
+        setTimeout(() => navigate("/auth/verify-email"), 2500);
         localStorage.setItem("userEmail", formData.email);
       } catch (error) {
         const errorMsg =
@@ -232,7 +232,7 @@ const Register = () => {
           <p className="text-center text-[12px] text-gray-500 pt-1">
             Already have an account?{" "}
             <Link
-              to="/"
+              to="/auth"
               className="text-[#241B7A] font-extrabold hover:underline ml-1"
             >
               sign in
