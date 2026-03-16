@@ -5,11 +5,15 @@ import {
   FiChevronLeft,
   FiChevronRight,
 } from "react-icons/fi";
+import empty from "../../../assets/Frame.png";
+import { CircleDollarSign } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Overview = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 7;
+  const navigate = useNavigate();
 
   // Mock event data - can be replaced with API call or Redux state
   const allEvents = [
@@ -22,7 +26,7 @@ const Overview = () => {
       status: "ONGOING",
       ticketsSold: 400,
       ticketsTotal: 410,
-      image: "🌍",
+      image: empty,
     },
     {
       id: 2,
@@ -33,7 +37,7 @@ const Overview = () => {
       status: "DRAFT",
       ticketsSold: 0,
       ticketsTotal: 500,
-      image: "🌿",
+      image: empty,
     },
     {
       id: 3,
@@ -44,7 +48,7 @@ const Overview = () => {
       status: "PUBLISHED",
       ticketsSold: 0,
       ticketsTotal: 100,
-      image: "🎨",
+      image: empty,
     },
     {
       id: 4,
@@ -55,7 +59,7 @@ const Overview = () => {
       status: "PUBLISHED",
       ticketsSold: 100,
       ticketsTotal: 200,
-      image: "🎭",
+      image: empty,
     },
     {
       id: 5,
@@ -66,7 +70,7 @@ const Overview = () => {
       status: "ONGOING",
       ticketsSold: 40,
       ticketsTotal: 100,
-      image: "🖼️",
+      image: empty,
     },
     {
       id: 6,
@@ -77,7 +81,7 @@ const Overview = () => {
       status: "DRAFT",
       ticketsSold: 0,
       ticketsTotal: 70,
-      image: "💆",
+      image: empty,
     },
     {
       id: 7,
@@ -88,7 +92,7 @@ const Overview = () => {
       status: "PAST",
       ticketsSold: 40,
       ticketsTotal: 100,
-      image: "📦",
+      image: empty,
     },
   ];
 
@@ -106,32 +110,112 @@ const Overview = () => {
 
     return [
       {
-        icon: "💰",
+        icon: <CircleDollarSign />,
         label: "TOTAL REVENUE",
         value: `₦${totalRevenue.toLocaleString()}`,
-        bgColor: "bg-pink-100",
+        bgColor: "bg-gradient-to-b from-[#FFEAF31F] to-[#FF00B71F]",
         borderColor: "border-pink-200",
       },
       {
-        icon: "🎫",
+        icon: (
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M2.46433 9.34375C2.21579 9.34375 1.98899 9.14229 2.00041 8.87895C2.06733 7.33687 2.25481 6.33298 2.78008 5.53884C3.08228 5.08196 3.45765 4.68459 3.88923 4.36468C5.05575 3.5 6.70139 3.5 9.99266 3.5H14.0074C17.2986 3.5 18.9443 3.5 20.1108 4.36468C20.5424 4.68459 20.9177 5.08196 21.2199 5.53884C21.7452 6.33289 21.9327 7.33665 21.9996 8.87843C22.011 9.14208 21.7839 9.34375 21.5351 9.34375C20.1493 9.34375 19.0259 10.533 19.0259 12C19.0259 13.467 20.1493 14.6562 21.5351 14.6562C21.7839 14.6562 22.011 14.8579 21.9996 15.1216C21.9327 16.6634 21.7452 17.6671 21.2199 18.4612C20.9177 18.918 20.5424 19.3154 20.1108 19.6353C18.9443 20.5 17.2986 20.5 14.0074 20.5H9.99266C6.70139 20.5 5.05575 20.5 3.88923 19.6353C3.45765 19.3154 3.08228 18.918 2.78008 18.4612C2.25481 17.667 2.06733 16.6631 2.00041 15.1211C1.98899 14.8577 2.21579 14.6562 2.46433 14.6562C3.85012 14.6562 4.97352 13.467 4.97352 12C4.97352 10.533 3.85012 9.34375 2.46433 9.34375Z"
+              stroke="#1E1E1E"
+              stroke-width="1.5"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M9 3.5L9 20.5"
+              stroke="#1E1E1E"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        ),
         label: "TOTAL TICKETS SOLD",
         value: totalTicketsSold.toLocaleString(),
-        bgColor: "bg-purple-100",
+        bgColor: "bg-gradient-to-b from-[#DEDBEE1F] to-[#4237F71F]",
         borderColor: "border-purple-200",
       },
       {
-        icon: "📁",
+        icon: (
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M7 7H16.75C18.8567 7 19.91 7 20.6667 7.50559C20.9943 7.72447 21.2755 8.00572 21.4944 8.33329C21.9796 9.05942 21.9992 10.0588 22 12M12 7L11.3666 5.73313C10.8418 4.68358 10.3622 3.62712 9.19926 3.19101C8.6899 3 8.10802 3 6.94427 3C5.1278 3 4.21956 3 3.53806 3.38032C3.05227 3.65142 2.65142 4.05227 2.38032 4.53806C2 5.21956 2 6.1278 2 7.94427V11C2 15.714 2 18.0711 3.46447 19.5355C4.7646 20.8357 6.7682 20.9816 10.5 20.9979"
+              stroke="#141B34"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+            <path
+              d="M13 19C13 19 14 19 15 21C15 21 18.1765 16 21 15"
+              stroke="#141B34"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        ),
         label: "ONGOING EVENTS",
         value: ongoingCount,
-        bgColor: "bg-green-100",
+        bgColor: "bg-gradient-to-b from-[#D9FCD70F] to-[#16EF061F]",
         borderColor: "border-green-200",
       },
       {
-        icon: "📋",
+        icon: (
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M18 2V4M6 2V4"
+              stroke="#1E1E1E"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M10 17L9.99999 13.3472C9.99999 13.1555 9.86325 13 9.69458 13H9M13.6297 17L14.9842 13.3492C15.0475 13.1785 14.9128 13 14.7207 13H13"
+              stroke="#1E1E1E"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+            <path
+              d="M2.5 12.2432C2.5 7.88594 2.5 5.70728 3.75212 4.35364C5.00424 3 7.01949 3 11.05 3H12.95C16.9805 3 18.9958 3 20.2479 4.35364C21.5 5.70728 21.5 7.88594 21.5 12.2432V12.7568C21.5 17.1141 21.5 19.2927 20.2479 20.6464C18.9958 22 16.9805 22 12.95 22H11.05C7.01949 22 5.00424 22 3.75212 20.6464C2.5 19.2927 2.5 17.1141 2.5 12.7568V12.2432Z"
+              stroke="#1E1E1E"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M6 8H18"
+              stroke="#1E1E1E"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        ),
         label: "PUBLISHED EVENTS",
         value: publishedCount,
-        bgColor: "bg-blue-100",
-        borderColor: "border-blue-200",
+        bgColor: "bg-gradient-to-b from-[#FAF1CB1C] to-[#E8BB061F]",
+        borderColor: "border-[#E8BB061F]",
       },
     ];
   };
@@ -237,73 +321,16 @@ const Overview = () => {
         {allEvents.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             {/* Folder Illustration */}
-            <div className="mb-8">
-              <svg
-                className="w-40 h-40 mx-auto"
-                viewBox="0 0 120 120"
-                fill="none"
-              >
-                {/* Folder */}
-                <rect
-                  x="20"
-                  y="40"
-                  width="80"
-                  height="60"
-                  rx="5"
-                  fill="#b8b8b8"
-                  stroke="#888"
-                  strokeWidth="2"
-                />
-                {/* Folder tab */}
-                <rect
-                  x="20"
-                  y="25"
-                  width="35"
-                  height="15"
-                  rx="3"
-                  fill="#b8b8b8"
-                  stroke="#888"
-                  strokeWidth="2"
-                />
-                {/* Papers inside */}
-                <rect
-                  x="35"
-                  y="48"
-                  width="24"
-                  height="32"
-                  rx="2"
-                  fill="#d4d4d4"
-                  stroke="#999"
-                  strokeWidth="1.5"
-                  transform="rotate(-12 47 64)"
-                />
-                <rect
-                  x="42"
-                  y="50"
-                  width="24"
-                  height="32"
-                  rx="2"
-                  fill="#e0e0e0"
-                  stroke="#999"
-                  strokeWidth="1.5"
-                  transform="rotate(-4 54 66)"
-                />
-                <rect
-                  x="50"
-                  y="48"
-                  width="24"
-                  height="32"
-                  rx="2"
-                  fill="#d0d0d0"
-                  stroke="#999"
-                  strokeWidth="1.5"
-                  transform="rotate(6 62 64)"
-                />
-              </svg>
+            <div className="mb-4 w-50 h-40">
+              <img
+                src={empty}
+                alt="empty"
+                className="w-full h-full object-contain"
+              />
             </div>
 
             {/* Empty State Message */}
-            <p className="text-gray-600 text-base font-medium mb-8">
+            <p className="text-gray-600 text-base font-medium mb-4">
               You are yet to create an event
             </p>
 
@@ -351,8 +378,12 @@ const Overview = () => {
                     {/* Event Details */}
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-lg bg-linear-to-br from-purple-400 to-blue-400 flex items-center justify-center text-xl">
-                          {event.image}
+                        <div className="w-12 h-12 rounded-lg border border-gray-300 flex items-center justify-center text-xl">
+                          <img
+                            src={event.image}
+                            alt={event.name}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                         <div>
                           <p className="font-semibold text-gray-900 text-sm">
@@ -378,7 +409,7 @@ const Overview = () => {
                     {/* Status */}
                     <td className="py-4 px-4">
                       <span
-                        className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(event.status)}`}
+                        className={`inline-block px-3 py-1 w-auto rounded-full text-xs font-semibold ${getStatusColor(event.status)}`}
                       >
                         {event.status}
                       </span>
@@ -393,7 +424,12 @@ const Overview = () => {
 
                     {/* Actions */}
                     <td className="py-4 px-4">
-                      <button className="text-indigo-900 font-semibold text-sm hover:underline">
+                      <button
+                        className="text-indigo-900 font-semibold text-sm cursor-pointer hover:underline"
+                        onClick={() =>
+                          navigate(`/dashboard/event-details/${event.id}`)
+                        }
+                      >
                         Manage
                       </button>
                     </td>

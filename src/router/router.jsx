@@ -9,10 +9,17 @@ import {
   ErrorPage,
   HomeLayout,
   LandingPage,
+  NotFound,
 } from "./LazyLoad";
 import Overview from "../pages/dashboard/others/Overview";
+import MyEvents from "../pages/dashboard/others/ManageEvents";
+import EventDetails from "../pages/dashboard/others/EventDetailPage";
 
 export const router = createBrowserRouter([
+  {
+    path: "*",
+    element: <NotFound />,
+  },
   {
     path: "/",
     element: <HomeLayout />,
@@ -50,6 +57,10 @@ export const router = createBrowserRouter([
     path: "/dashboard",
     element: <DashboardLayout />,
     errorElement: <ErrorPage />,
-    children: [{ path: "overview", element: <Overview /> }],
+    children: [
+      { path: "overview", element: <Overview /> },
+      { path: "event-management", element: <MyEvents /> },
+      { path: "event-details/:id", element: <EventDetails /> },
+    ],
   },
 ]);
