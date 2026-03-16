@@ -17,7 +17,7 @@ const StatSkeleton = () => (
       <div className="w-8 h-8 bg-gray-200 rounded"></div>
     </div>
     <div>
-      <div className="w-24 h-3 bg-gray-200 rounded mb-3"></div>
+      <div className="w-24 h-3 bg-gray-250 rounded mb-3"></div>
       <div className="w-20 h-8 bg-gray-200 rounded"></div>
     </div>
   </div>
