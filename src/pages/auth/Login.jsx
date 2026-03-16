@@ -53,7 +53,7 @@ const Login = () => {
         text: response.message || "Login successful",
       });
 
-      setTimeout(() => navigate("/dashboard"), 1000);
+      setTimeout(() => navigate("/dashboard/overview"), 1000);
     } catch (err) {
       console.error("Login error:", err);
       const serverMessage =
