@@ -13,6 +13,7 @@ import {
 import Overview from "../pages/dashboard/others/Overview";
 import ResetPassword from "../pages/auth/ResetPassword";
 import VerifyResetCode from "../pages/auth/VerifyResetCode";
+import DiscoverEvents from "../pages/home/DiscoverEvents";
 
 export const router = createBrowserRouter([
   {
@@ -22,6 +23,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <LandingPage />,
+      },
+      {
+        path: "/discover",
+        element: <DiscoverEvents />,
       },
     ],
   },

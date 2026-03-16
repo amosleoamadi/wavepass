@@ -9,18 +9,18 @@ const Header = () => {
   const isHomePage = location.pathname === "/";
 
   return (
-    <header className="w-full bg-white border-b border-gray-100 px-6 md:px-12 py-3.5 sticky top-0 z-50">
-      <div className="max-w-[95%] mx-auto flex items-center justify-between">
+    <header className="w-full bg-white border-b border-gray-100 px-6 md:px-16 py-3.5 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="md:w-47.5 shrink-0">
           <Link to="/" className="flex items-center gap-2.5 w-fit">
-            <div className="bg-[#241B7A] w-9 h-8 rounded-xl flex items-center justify-center overflow-hidden">
+            <div className="bg-[#27187E] w-9 h-8 rounded-xl flex items-center justify-center overflow-hidden">
               <img
                 src={logo}
                 alt="Wave Pass Logo"
                 className="w-full h-full object-cover"
               />
             </div>
-            <span className="text-[#241B7A] font-bold text-sm tracking-tight">
+            <span className="text-[#27187E] font-bold text-sm tracking-tight">
               Wave Pass
             </span>
           </Link>
@@ -32,13 +32,13 @@ const Header = () => {
           <nav className="flex items-center gap-10">
             <Link
               to="/discover"
-              className="text-[#4B5563] font-semibold text-[14px] hover:text-[#1C1661] transition-colors whitespace-nowrap"
+              className="text-[#4B5563] font-semibold text-[14px] hover:text-[#27187E] transition-colors whitespace-nowrap"
             >
               Discover Events
             </Link>
             <Link
               to="/about"
-              className="text-[#4B5563] font-semibold text-[14px] hover:text-[#1C1661] transition-colors whitespace-nowrap"
+              className="text-[#4B5563] font-semibold text-[14px] hover:text-[#27187E] transition-colors whitespace-nowrap"
             >
               About Us
             </Link>
@@ -56,21 +56,20 @@ const Header = () => {
           )}
         </div>
 
-        {/* Desktop Auth Buttons */}
         <div className="hidden md:flex w-62.5 shrink-0 items-center justify-end gap-8">
-          <Link to="/auth/" className="text-[#4F46E5] font-bold text-[14px]">
+          <Link to="/auth/" className="text-[#27187E] font-bold text-[14px]">
             Sign In
           </Link>
           <Link
             to="/auth/register"
-            className="bg-[#1C1661] text-white font-bold px-8 py-3 rounded-xl text-[14px] shadow-md shadow-indigo-100 active:scale-[0.97]"
+            className="bg-[#27187E] text-white font-bold px-8 py-3 rounded-xl text-[14px] shadow-md shadow-indigo-100 active:scale-[0.97]"
           >
             Sign Up
           </Link>
         </div>
 
         <button
-          className="md:hidden text-[#1C1661] p-2"
+          className="md:hidden text-[#27187E] p-2"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -86,14 +85,14 @@ const Header = () => {
           <nav className="flex flex-col gap-6">
             <Link
               to="/discover"
-              className="text-[#1C1661] font-semibold text-[16px] border-b border-gray-50 pb-2"
+              className="text-[#27187E] font-semibold text-[16px] border-b border-gray-50 pb-2"
               onClick={() => setIsMenuOpen(false)}
             >
               Discover Events
             </Link>
             <Link
               to="/about"
-              className="text-[#1C1661] font-semibold text-[16px] border-b border-gray-50 pb-2"
+              className="text-[#27187E] font-semibold text-[16px] border-b border-gray-50 pb-2"
               onClick={() => setIsMenuOpen(false)}
             >
               About Us
@@ -103,14 +102,14 @@ const Header = () => {
           <div className="flex flex-col gap-4">
             <Link
               to="/auth/register"
-              className="w-full bg-[#1C1661] text-white text-center font-bold py-4 rounded-xl text-[15px] shadow-lg shadow-indigo-50"
+              className="w-full bg-[#27187E] text-white text-center font-bold py-4 rounded-xl text-[15px] shadow-lg shadow-indigo-50"
               onClick={() => setIsMenuOpen(false)}
             >
               Sign Up
             </Link>
             <Link
               to="/auth/"
-              className="w-full border border-[#1C1661]/20 text-[#1C1661] text-center font-bold py-4 rounded-xl text-[15px]"
+              className="w-full border border-[#1C1661]/20 text-[#27187E] text-center font-bold py-4 rounded-xl text-[15px]"
               onClick={() => setIsMenuOpen(false)}
             >
               Sign In

@@ -1,5 +1,4 @@
 import React from "react";
-import Hero from "../../components/ui/Hero";
 import ExploreEvents from "../../components/ui/ExploreEvents";
 import EventFeatureSection from "../../components/ui/EventFeatureSection";
 import ClientTestimonials from "../../components/ui/ClientTestimonials";
@@ -7,10 +6,9 @@ import Pricing from "../../components/ui/Pricing";
 import CallToAction from "../../components/ui/CallToAction";
 import Newsletter from "../../components/ui/NewsLetter";
 
-const LandingPage = () => {
+const DiscoverEvents = () => {
   return (
-    <div className="min-h-screen">
-      <Hero />
+    <div>
       <ExploreEvents />
       <EventFeatureSection />
       <ClientTestimonials />
@@ -21,4 +19,4 @@ const LandingPage = () => {
   );
 };
 
-export default LandingPage;
+export default DiscoverEvents;
