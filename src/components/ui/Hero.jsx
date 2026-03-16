@@ -108,7 +108,7 @@ const Hero = () => {
 
           <motion.div
             variants={fadeInUp}
-            className="flex flex-nowrap md:flex-wrap justify-center items-center gap-4 md:gap-12 w-full py-2"
+            className="flex flex-wrap md:flex-wrap justify-center items-center gap-2 md:gap-12 w-full py-2 -mt-3"
           >
             {[
               { icon: <FiZap />, text: "Fast booking" },

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, AlertCircle, CheckCircle2 } from "lucide-react";
+import { X, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import EmailVerificationSuccess from "../../components/ui/EmailVerificationSuccess";
 import {
   useVerifyEmailMutation,
   useResendCodeMutation,
 } from "../../services/authApi";
+import logo from "../../assets/public/wavepass.png";
 
 const VerifyResetCode = () => {
   const [otp, setOtp] = useState(new Array(6).fill(""));
@@ -60,6 +61,7 @@ const VerifyResetCode = () => {
   };
 
   const handlePaste = (e) => {
+    e.preventDefault();
     const data = e.clipboardData.getData("text").slice(0, 6);
     if (!/^\d+$/.test(data)) return;
     const pasteData = data.split("");
@@ -67,17 +69,16 @@ const VerifyResetCode = () => {
     pasteData.forEach((char, index) => {
       if (index < 6) {
         newOtp[index] = char;
-        if (inputRefs.current[index]) inputRefs.current[index].value = char;
       }
     });
     setOtp(newOtp);
     const nextFocus = data.length < 6 ? data.length : 5;
-    inputRefs.current[nextFocus].focus();
+    inputRefs.current[nextFocus]?.focus();
   };
 
   const validate = () => {
     if (otp.some((digit) => digit === "")) {
-      setErrors("Please enter the complete 6-digit code");
+      setErrors("Enter the complete 6-digit code");
       return false;
     }
     return true;
@@ -105,11 +106,8 @@ const VerifyResetCode = () => {
   const handleResend = async () => {
     if (seconds > 0 || isResending) return;
     try {
-      const data = {
-        email: localStorage.getItem("userEmail"),
-      };
+      const data = { email: localStorage.getItem("userEmail") };
       const response = await resendCode(data).unwrap();
-
       setMessage({
         type: "success",
         text: response?.message || "Verification code resent!",
@@ -142,105 +140,127 @@ const VerifyResetCode = () => {
   }
 
   return (
-    <div className="w-full max-w-100 bg-white rounded-xl shadow-sm p-6 md:p-8">
-      <div className="text-center mb-8">
-        <h2 className="text-xl font-bold text-[#1E1B4B] mb-1">
-          Verify Your Email
-        </h2>
-        <p className="text-gray-400 text-[12px] leading-tight px-4">
-          Please input the code sent to your email
-        </p>
-      </div>
+    <div className="h-dvh w-full flex flex-col p-4 sm:p-6">
+      <header className="flex items-center gap-2 shrink-0 mb-2">
+        <div className="bg-[#241B7A] w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden">
+          <img src={logo} alt="Logo" className="w-full h-full object-cover" />
+        </div>
+        <span className="text-[#241B7A] font-bold text-base tracking-tight">
+          Wave Pass
+        </span>
+      </header>
 
-      <form className="space-y-6" onSubmit={handleSubmit}>
-        <div className="space-y-2">
-          <div
-            className="flex justify-between gap-2 px-2"
-            onPaste={handlePaste}
-          >
-            {otp.map((data, index) => (
-              <input
-                key={index}
-                type="text"
-                maxLength="1"
-                ref={(el) => (inputRefs.current[index] = el)}
-                value={data}
-                onChange={(e) => handleChange(e.target, index)}
-                onKeyDown={(e) => handleKeyDown(e, index)}
-                onFocus={(e) => e.target.select()}
-                className={`w-10 h-10 md:w-12 md:h-12 text-center bg-[#F3F4F6] border rounded-lg focus:outline-none focus:bg-white transition-all text-lg font-semibold text-[#1E1B4B] ${
-                  errors
-                    ? "border-red-400"
-                    : "border-transparent focus:border-[#241B7A]"
-                }`}
-              />
-            ))}
-          </div>
-          {errors && (
-            <p className="text-center text-[11px] text-red-500 font-medium">
-              {errors}
+      <main className="grow flex items-center justify-center">
+        <div className="w-full max-w-100 bg-white rounded-2xl shadow-sm border border-gray-100 px-6 py-6 sm:px-8 flex flex-col transition-all">
+          <div className="text-center mb-5">
+            <h2 className="text-xl font-bold text-[#1E1B4B] mb-1">
+              Verify Your Email
+            </h2>
+            <p className="text-gray-400 text-xs px-2">
+              Input the code sent to your email
             </p>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          disabled={isVerifying}
-          className="w-full bg-[#241B7A] hover:bg-[#1a135d] disabled:bg-gray-400 text-white font-bold py-3 rounded-lg transition-colors text-sm shadow-sm"
-        >
-          {isVerifying ? "Verifying..." : "Verify"}
-        </button>
-
-        <div className="text-center space-y-4">
-          <p className="text-[12px] text-gray-500 font-medium">
-            Didn't receive any code?
-          </p>
-          <div className="flex justify-between items-center px-2">
-            <button
-              type="button"
-              disabled={seconds > 0 || isResending}
-              onClick={handleResend}
-              className={`text-[12px] font-semibold border-b pb-0.5 transition-colors ${
-                seconds > 0 || isResending
-                  ? "text-gray-300 border-gray-200 cursor-not-allowed"
-                  : "text-[#241B7A] border-[#241B7A] cursor-pointer"
-              }`}
-            >
-              {isResending ? "Resending..." : "Resend code in"}
-            </button>
-            <span className="text-[#F43F5E] font-bold text-sm min-w-11.25 text-right">
-              {formatTime(seconds)}
-            </span>
           </div>
-        </div>
 
-        {message.text && (
-          <div
-            className={`mt-4 flex items-center justify-between p-3 rounded-lg border animate-in fade-in slide-in-from-bottom-2 ${
-              message.type === "success"
-                ? "bg-green-50 border-green-200 text-green-800"
-                : "bg-red-50 border-red-200 text-red-800"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              {message.type === "success" ? (
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-              ) : (
-                <AlertCircle className="w-4 h-4 shrink-0" />
-              )}
-              <p className="text-[12px] font-medium leading-tight">
-                {message.text}
-              </p>
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <div
+                className="grid grid-cols-6 gap-2 w-full"
+                onPaste={handlePaste}
+              >
+                {otp.map((data, index) => (
+                  <input
+                    key={index}
+                    type="text"
+                    maxLength="1"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    ref={(el) => (inputRefs.current[index] = el)}
+                    value={data}
+                    onChange={(e) => handleChange(e.target, index)}
+                    onKeyDown={(e) => handleKeyDown(e, index)}
+                    onFocus={(e) => e.target.select()}
+                    className={`w-full aspect-square text-center bg-gray-50 border rounded-xl focus:outline-none transition-all text-base sm:text-lg font-bold text-[#1E1B4B] ${
+                      errors
+                        ? "border-red-400 ring-1 ring-red-400"
+                        : "border-gray-100 focus:border-[#241B7A] focus:bg-white focus:ring-1 focus:ring-[#241B7A]"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <div className="h-4 flex items-center justify-center">
+                {errors && (
+                  <p className="text-[10px] font-bold text-red-500 uppercase">
+                    {errors}
+                  </p>
+                )}
+              </div>
             </div>
+
             <button
-              type="button"
-              onClick={() => setMessage({ type: "", text: "" })}
+              type="submit"
+              disabled={isVerifying}
+              className="w-full bg-[#241B7A] hover:bg-[#1a135d] disabled:bg-gray-300 text-white font-bold py-3 rounded-xl text-sm transition-transform active:scale-95 flex items-center justify-center"
             >
-              <X className="w-3.5 h-3.5" />
+              {isVerifying ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                "Verify Code"
+              )}
             </button>
-          </div>
-        )}
-      </form>
+
+            <div className="pt-1">
+              <div className="flex flex-col items-center gap-3">
+                <p className="text-[10px] text-gray-400 font-medium uppercase tracking-tight">
+                  Didn't receive any code?
+                </p>
+                <div className="flex justify-between items-center w-full px-1">
+                  <button
+                    type="button"
+                    disabled={seconds > 0 || isResending}
+                    onClick={handleResend}
+                    className={`text-[11px] font-bold transition-colors ${
+                      seconds > 0 || isResending
+                        ? "text-gray-300 cursor-not-allowed"
+                        : "text-[#241B7A] hover:underline"
+                    }`}
+                  >
+                    {isResending ? "Resending..." : "Resend code"}
+                  </button>
+                  <span className="text-[#F43F5E] font-bold text-[11px] bg-red-50 px-2 py-0.5 rounded">
+                    {formatTime(seconds)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="min-h-8 flex items-end">
+              {message.text && (
+                <div
+                  className={`flex items-center justify-between w-full p-2 rounded-lg border text-[10px] font-bold ${
+                    message.type === "success"
+                      ? "bg-green-50 border-green-100 text-green-700"
+                      : "bg-red-50 border-red-100 text-red-700"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {message.type === "success" ? (
+                      <CheckCircle2 className="w-3 h-3" />
+                    ) : (
+                      <AlertCircle className="w-3 h-3" />
+                    )}
+                    <span>{message.text}</span>
+                  </div>
+                  <X
+                    className="w-3 h-3 cursor-pointer opacity-50"
+                    onClick={() => setMessage({ type: "", text: "" })}
+                  />
+                </div>
+              )}
+            </div>
+          </form>
+        </div>
+      </main>
     </div>
   );
 };
