@@ -12,6 +12,7 @@ import {
 } from "./LazyLoad";
 import Overview from "../pages/dashboard/others/Overview";
 import ResetPassword from "../pages/auth/ResetPassword";
+import VerifyResetCode from "../pages/auth/VerifyResetCode";
 
 export const router = createBrowserRouter([
   {
