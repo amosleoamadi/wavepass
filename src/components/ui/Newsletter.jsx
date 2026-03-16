@@ -1,6 +1,6 @@
 import React from "react";
 
-const Newsletter = () => {
+const NewsLetter = () => {
   return (
     <div className="w-full bg-[#efeff4] py-16 md:py-20">
       <section className="max-w-7xl mx-auto px-6 font-['Inter',sans-serif] text-center">
@@ -10,7 +10,7 @@ const Newsletter = () => {
 
         <p className="text-gray-500 text-sm md:text-base max-w-3xl mx-auto mb-10 leading-relaxed">
           Get the latest event planning tips, platform updates, exclusive
-          offers, and more, straight to your inbox. Sign up for our newsletter
+          offers, and more, straight to your inbox. Sign up for our NewsLetter
           and never miss out on exciting news and features.
         </p>
 
@@ -36,4 +36,4 @@ const Newsletter = () => {
   );
 };
 
-export default Newsletter;
+export default NewsLetter;
