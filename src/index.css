@@ -16,6 +16,7 @@
 }
 .span {
   font-family: "Montez", cursive;
+  color: #27187e;
 }
 
 @media (min-width: 768px) {
