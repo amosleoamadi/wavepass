@@ -15,6 +15,9 @@ import Overview from "../pages/dashboard/others/Overview";
 import ResetPassword from "../pages/auth/ResetPassword";
 import VerifyResetCode from "../pages/auth/VerifyResetCode";
 import DiscoverEvents from "../pages/home/DiscoverEvents";
+import MyEvents from "../pages/dashboard/others/ManageEvents";
+import EventDetails from "../pages/dashboard/others/EventDetailPage";
+import EventFormContainer from "../pages/dashboard/others/CreateEvent";
 
 export const router = createBrowserRouter([
   {
