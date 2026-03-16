@@ -92,7 +92,7 @@ const ForgetPassword = () => {
 
         <div className="text-center pt-2">
           <Link
-            to="/login"
+            to="/auth"
             className="text-[12px] font-bold text-gray-500 hover:text-[#241B7A] transition-colors"
           >
             Back to login

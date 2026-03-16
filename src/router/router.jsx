@@ -13,10 +13,8 @@ import {
 } from "./LazyLoad";
 import Overview from "../pages/dashboard/others/Overview";
 import ResetPassword from "../pages/auth/ResetPassword";
-import MyEvents from "../pages/dashboard/others/ManageEvents";
-import EventDetails from "../pages/dashboard/others/EventDetailPage";
 import VerifyResetCode from "../pages/auth/VerifyResetCode";
-import EventFormContainer from "../pages/dashboard/others/CreateEvent";
+import DiscoverEvents from "../pages/home/DiscoverEvents";
 
 export const router = createBrowserRouter([
   {
@@ -30,6 +28,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <LandingPage />,
+      },
+      {
+        path: "/discover",
+        element: <DiscoverEvents />,
       },
     ],
   },
