@@ -18,6 +18,7 @@ import DiscoverEvents from "../pages/home/DiscoverEvents";
 import MyEvents from "../pages/dashboard/others/ManageEvents";
 import EventDetails from "../pages/dashboard/others/EventDetailPage";
 import EventFormContainer from "../pages/dashboard/others/CreateEvent";
+import CheckIn from "../pages/dashboard/others/Checkin";
 
 export const router = createBrowserRouter([
   {
@@ -78,6 +79,7 @@ export const router = createBrowserRouter([
       { path: "event-management", element: <MyEvents /> },
       { path: "event-details/:id", element: <EventDetails /> },
       { path: "create-event", element: <EventFormContainer /> },
+      { path: "checkin-user/:id", element: <CheckIn /> },
     ],
   },
 ]);

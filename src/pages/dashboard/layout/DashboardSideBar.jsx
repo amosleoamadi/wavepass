@@ -15,7 +15,7 @@ const Sidebar = ({ isMobile = false, onClose }) => {
     localStorage.clear();
     dispatch(logoutUser());
     if (onClose) onClose();
-    navigate("/login");
+    navigate("/auth/");
   };
 
   const linkClasses = ({ isActive }) =>

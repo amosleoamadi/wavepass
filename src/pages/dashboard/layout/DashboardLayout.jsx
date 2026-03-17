@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, NavLink } from "react-router-dom";
 import { Drawer } from "antd";
 import { IoCloseOutline } from "react-icons/io5";
+import { GoPlus } from "react-icons/go";
 import { useDispatch } from "react-redux";
 import { logoutUser } from "../../../store/slice";
 import logo from "../../../assets/LogoWrap.png";
@@ -65,6 +66,18 @@ const DashboardLayout = () => {
           {/* Page Content - Scrollable area */}
           <div className="flex-1 min-h-0 overflow-y-auto bg-gray-50">
             <div className="w-full h-max min-h-full p-4 sm:p-6">
+              {/* Create Event Button - Mobile Only (Above Outlet) */}
+              <div className="w-full mb-4 sm:hidden">
+                <NavLink
+                  to="/dashboard/create-event"
+                  className="w-full h-12 px-3 rounded-lg cursor-pointer bg-[#27187E] text-white text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#1f0f5a] transition-colors"
+                >
+                  <GoPlus size={20} />
+                  <span>Create Event</span>
+                </NavLink>
+              </div>
+
+              {/* Outlet - Page Content */}
               <Outlet />
             </div>
           </div>
@@ -77,7 +90,7 @@ const DashboardLayout = () => {
         closeIcon={false}
         onClose={() => setOpenSideBar(false)}
         placement="left"
-        width={280}
+        size={280}
         className="sm:hidden"
         styles={{
           body: {
