@@ -41,8 +41,13 @@ const Login = () => {
       const response = await login(formData).unwrap();
       const { data: user, accessToken } = response;
       dispatch(setCredentials({ user, token: accessToken }));
-      setMessage({ type: "success", text: "Success!" });
-      setTimeout(() => navigate("/dashboard"), 1000);
+
+      setMessage({
+        type: "success",
+        text: response.message || "Login successful",
+      });
+
+      setTimeout(() => navigate("/dashboard/overview"), 1000);
     } catch (err) {
       setErrors((prev) => ({ ...prev, server: err?.data?.message || "Error" }));
     }

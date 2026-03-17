@@ -72,7 +72,7 @@ const Sidebar = ({ isMobile = false, onClose }) => {
             <NavLink
               onClick={onClose}
               className={linkClasses}
-              to="/dashboard/manage/events"
+              to="/dashboard/event-management"
             >
               <CiCircleList size={iconSize} />
               <span>Manage Events</span>

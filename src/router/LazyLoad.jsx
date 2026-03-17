@@ -11,3 +11,4 @@ export const AuthLayout = lazy(
 export const HomeLayout = lazy(
   () => import("../components/layouts/HomeLayout"),
 );
+export const NotFound = lazy(() => import("../pages/others/NotFound"));
