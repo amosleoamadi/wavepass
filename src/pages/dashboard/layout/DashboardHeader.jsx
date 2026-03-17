@@ -2,6 +2,7 @@ import React from "react";
 import { CiMenuBurger } from "react-icons/ci";
 import { IoChevronDownOutline } from "react-icons/io5";
 import { Dropdown } from "antd";
+import { useSelector } from "react-redux";
 import logo from "../../../assets/LogoWrap.png";
 
 const DashboardHeader = ({
@@ -9,9 +10,32 @@ const DashboardHeader = ({
   profileItems,
   openProfile,
   setOpenProfile,
-  userFullName = "fullName",
-  userInitial = "getInitial",
 }) => {
+  const user = useSelector((state) => state.user?.user);
+  const userFullName = user?.fullname || "User";
+  const userEmail = user?.email || "";
+
+  const getUserInitial = () => {
+    if (userFullName && userFullName !== "User") {
+      // Get first letter of first name and last name
+      const nameParts = userFullName.split(" ");
+      if (nameParts.length >= 2) {
+        return nameParts[0][0].toUpperCase();
+      }
+
+      return nameParts[0].toUpperCase();
+    }
+
+    if (userEmail) {
+      return userEmail.substring(0, 2).toUpperCase();
+    }
+
+    // Default fallback
+    return "U";
+  };
+
+  const userInitial = getUserInitial();
+
   return (
     <div className="shrink-0 w-full h-25 border-b border-b-[#DFDCEC] flex items-center justify-between px-4 sm:px-6 bg-white">
       {/* Left section - Mobile Menu Button - Fixed width */}
@@ -26,7 +50,7 @@ const DashboardHeader = ({
       </div>
 
       {/* Center section - Mobile Logo - Flexible with max width */}
-      <div className="sm:hidden w-[cal(100%-100px)] flex justify-center px-2">
+      <div className="sm:hidden w-[calc(100%-100px)] flex justify-center px-2">
         <div className="w-45 h-16">
           <img src={logo} alt="logo" className="w-full h-full object-contain" />
         </div>
