@@ -4,6 +4,7 @@ import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useLoginMutation } from "../../services/authApi";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../store/slice";
+import logo from "../../assets/public/wavepass.png";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -25,15 +26,10 @@ const Login = () => {
   const validateForm = () => {
     const tempErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!formData.email) tempErrors.email = "Email is required";
+    if (!formData.email) tempErrors.email = "Required";
     else if (!emailRegex.test(formData.email))
-      tempErrors.email = "Invalid email format";
-
-    if (!formData.password) tempErrors.password = "Password is required";
-    else if (formData.password.length < 6)
-      tempErrors.password = "Minimum 6 characters";
-
+      tempErrors.email = "Invalid format";
+    if (!formData.password) tempErrors.password = "Required";
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
@@ -41,10 +37,8 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
     try {
       const response = await login(formData).unwrap();
-      setErrors((prev) => ({ ...prev, server: "" }));
       const { data: user, accessToken } = response;
       dispatch(setCredentials({ user, token: accessToken }));
 
@@ -55,138 +49,115 @@ const Login = () => {
 
       setTimeout(() => navigate("/dashboard/overview"), 1000);
     } catch (err) {
-      console.error("Login error:", err);
-      const serverMessage =
-        err?.data?.message ||
-        err?.error ||
-        "Login failed. Check your connection.";
-      setErrors((prev) => ({ ...prev, server: serverMessage }));
+      setErrors((prev) => ({ ...prev, server: err?.data?.message || "Error" }));
     }
   };
 
   return (
-    <div className="w-full max-w-100 bg-white rounded-xl shadow-sm p-6 md:p-8">
-      <div className="text-center mb-6">
-        <h2 className="text-xl font-bold text-[#1E1B4B] mb-1">
-          Unlock Your Event Access
-        </h2>
-        <p className="text-gray-400 text-[12px]">
-          Sign in to access your event account
-        </p>
+    <div className="h-screen w-full flex flex-col p-4 md:p-8 overflow-hidden">
+      <div className="flex items-center gap-2 shrink-0">
+        <div className="bg-[#241B7A] w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+          <img src={logo} alt="Logo" className="w-full h-full object-cover" />
+        </div>
+        <span className="text-[#241B7A] font-bold text-base tracking-tight">
+          Wave Pass
+        </span>
       </div>
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <div className="space-y-1">
-          <label className="text-[13px] font-semibold text-gray-600 tracking-wide">
-            Email address
-          </label>
-          <div className="relative">
-            <Mail
-              className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${errors.email ? "text-red-400" : "text-gray-300"}`}
-            />
-            <input
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              disabled={isLoading}
-              placeholder="enter your email address"
-              className={`w-full pl-10 pr-4 py-2.5 bg-white border rounded-lg focus:outline-none transition-all text-[14px] ${
-                errors.email
-                  ? "border-red-400"
-                  : "border-gray-100 focus:border-[#241B7A]"
-              }`}
-            />
+      <div className="grow flex items-center justify-center">
+        <div className="w-full max-w-100 bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-8">
+          <div className="text-center mb-4 md:mb-6">
+            <h2 className="text-xl font-bold text-[#1E1B4B]">Welcome Back</h2>
+            <p className="text-gray-400 text-xs">Sign in to your account</p>
           </div>
-          {errors.email && (
-            <p className="text-red-500 text-[10px] font-bold uppercase mt-1">
-              {errors.email}
-            </p>
-          )}
-        </div>
 
-        <div className="space-y-1">
-          <label className="text-[13px] font-semibold text-gray-600 tracking-wide">
-            Password
-          </label>
-          <div className="relative">
-            <Lock
-              className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${errors.password ? "text-red-400" : "text-gray-300"}`}
-            />
-            <input
-              name="password"
-              type={showPassword ? "text" : "password"}
-              value={formData.password}
-              onChange={handleInputChange}
-              disabled={isLoading}
-              placeholder="enter your password"
-              className={`w-full pl-10 pr-10 py-2.5 bg-white border rounded-lg focus:outline-none transition-all text-[14px] ${
-                errors.password
-                  ? "border-red-400"
-                  : "border-gray-100 focus:border-[#241B7A]"
-              }`}
-            />
-            <p className="text-left text-[12px] text-gray-500 mt-1">
-              <Link
-                to="/auth/forgot-password"
-                className="text-[#241B7A] font-extrabold hover:underline"
-              >
-                Forgot Password?
-              </Link>
-            </p>
+          <form className="space-y-3 md:space-y-4" onSubmit={handleSubmit}>
+            <div className="space-y-1">
+              <label className="text-[12px] font-semibold text-gray-500 ml-1">
+                Email
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                <input
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full pl-11 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[12px] font-semibold text-gray-500 ml-1">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                <input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className="w-full pl-11 pr-12 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 p-1"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+              <div className="flex justify-start">
+                <Link
+                  to="/auth/forgot-password"
+                  size="sm"
+                  className="text-[#241B7A] text-[11px] font-bold"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+            </div>
+
+            {(errors.server || message || errors.email || errors.password) && (
+              <div className="h-6">
+                <p className="text-center text-[10px] font-bold text-red-500 uppercase">
+                  {errors.server ||
+                    errors.email ||
+                    errors.password ||
+                    message?.text}
+                </p>
+              </div>
+            )}
+
             <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+              type="submit"
+              disabled={isLoading}
+              className="w-full -mt-4 md:mt-0 bg-[#241B7A] text-white font-bold py-3 rounded-xl text-sm transition-transform active:scale-95 flex items-center justify-center"
             >
-              {showPassword ? (
-                <EyeOff className="w-4 h-4" />
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <Eye className="w-4 h-4" />
+                "Sign in"
               )}
             </button>
-          </div>
-          {errors.password && (
-            <p className="text-red-500 text-[10px] font-bold uppercase mt-1">
-              {errors.password}
-            </p>
-          )}
+          </form>
         </div>
-        {errors.server && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-600 text-[12px] rounded-lg text-center">
-            {errors.server}
-          </div>
-        )}
+      </div>
 
-        {message && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-100 text-green-600 text-[12px] rounded-lg text-center">
-            {message.text}
-          </div>
-        )}
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full bg-[#241B7A] hover:bg-[#1a135d] disabled:bg-gray-400 text-white font-bold py-3.5 rounded-lg transition-all text-sm mt-2 flex items-center justify-center gap-2"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" /> Signing in...
-            </>
-          ) : (
-            "Sign in"
-          )}
-        </button>
-
-        <p className="text-center text-[12px] text-gray-500 pt-1">
+      <div className="shrink-0 py-2">
+        <p className="text-center text-xs text-gray-400">
           Don't have an account?
-          <Link
-            to="register"
-            className="text-[#241B7A] font-extrabold hover:underline ml-1"
-          >
-            sign up
+          <Link to="/auth/register" className="text-[#241B7A] font-bold ml-1">
+            Sign up
           </Link>
         </p>
-      </form>
+      </div>
     </div>
   );
 };
