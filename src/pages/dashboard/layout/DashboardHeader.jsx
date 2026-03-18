@@ -37,7 +37,7 @@ const DashboardHeader = ({
   const userInitial = getUserInitial();
 
   return (
-    <div className="shrink-0 w-full h-25 border-b border-b-[#DFDCEC] flex items-center justify-between px-4 sm:px-6 bg-white">
+    <div className="shrink-0 w-full h-20 border-b border-b-[#DFDCEC] flex items-center justify-between px-4 sm:px-6 bg-white">
       {/* Left section - Mobile Menu Button - Fixed width */}
       <div className="items-center flex md:hidden w-10 sm:w-auto">
         <button

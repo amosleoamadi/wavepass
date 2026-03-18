@@ -10,6 +10,7 @@ const Step2TicketDetails = ({
 }) => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [isSavingDraft, setIsSavingDraft] = useState(false); // Loading state for save draft
 
   const user = useSelector((state) => state.user?.user);
   const fullName = user?.fullname || "User";
@@ -124,6 +125,15 @@ const Step2TicketDetails = ({
     }
   };
 
+  const handleSaveDraft = async () => {
+    setIsSavingDraft(true);
+    try {
+      await onSaveDraft();
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Greeting */}
@@ -137,7 +147,7 @@ const Step2TicketDetails = ({
       </div>
 
       {/* Ticket Details Section */}
-      <div className="bg-white">
+      <div className="">
         <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">
           Ticket Details
         </h2>
@@ -283,10 +293,37 @@ const Step2TicketDetails = ({
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-stretch sm:items-center">
         <button
-          onClick={onSaveDraft}
-          className="w-full sm:w-auto px-4 sm:px-6 py-2 border border-gray-300 rounded-lg text-sm sm:text-base text-gray-700 font-medium hover:bg-gray-50 transition-colors order-3 sm:order-1"
+          onClick={handleSaveDraft}
+          disabled={isSavingDraft}
+          className="w-full sm:w-auto px-4 sm:px-6 py-2 border border-gray-300 rounded-lg text-sm sm:text-base text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed order-3 sm:order-1 flex items-center justify-center gap-2"
         >
-          Save Draft
+          {isSavingDraft ? (
+            <>
+              <svg
+                className="animate-spin h-4 w-4 text-gray-700"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <span>Saving...</span>
+            </>
+          ) : (
+            "Save Draft"
+          )}
         </button>
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
           <button
