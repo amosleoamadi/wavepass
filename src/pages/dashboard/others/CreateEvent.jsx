@@ -33,7 +33,6 @@ const EventFormContainer = () => {
     status: "draft",
   });
 
-  // Format date from YYYY-MM-DD to MM/DD/YYYY
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const [year, month, day] = dateString.split("-");
@@ -119,7 +118,7 @@ const EventFormContainer = () => {
     } catch (error) {
       setMessage({
         type: "error",
-        text: error?.data?.message || "Failed to save draft.",
+        text: error?.response?.data?.message || "Failed to save draft.",
       });
     }
   };
