@@ -230,7 +230,7 @@ const MobileEventCard = ({ event, onManage }) => {
 };
 
 const MyEvents = () => {
-  const [activeTab, setActiveTab] = useState("active");
+  const [activeTab, setActiveTab] = useState("published"); // Changed default to "published"
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 7;
@@ -274,18 +274,18 @@ const MyEvents = () => {
     };
   }, [allEvents]);
 
-  // Define tabs with counts
+  // Define tabs with counts - reordered to put published first
   const tabs = useMemo(
     () => [
-      {
-        id: "active",
-        label: "Ongoing Events",
-        count: tabCounts.active,
-      },
       {
         id: "published",
         label: "Published Events",
         count: tabCounts.published,
+      },
+      {
+        id: "active",
+        label: "Ongoing Events",
+        count: tabCounts.active,
       },
       {
         id: "past",
@@ -375,6 +375,26 @@ const MyEvents = () => {
     return colors[status?.toLowerCase()] || "bg-gray-100 text-gray-700";
   };
 
+  // Get empty state message based on active tab
+  const getEmptyStateMessage = () => {
+    if (searchQuery) {
+      return "No events found matching your search";
+    }
+
+    switch (activeTab) {
+      case "published":
+        return "You are yet to publish an event";
+      case "active":
+        return "No events have started yet";
+      case "past":
+        return "No past events yet";
+      case "drafts":
+        return "No draft events yet";
+      default:
+        return "You are yet to create an event";
+    }
+  };
+
   // Format date and time from the API response
   const formatEventDateTime = (event) => {
     let date = "N/A";
@@ -406,6 +426,14 @@ const MyEvents = () => {
     }
 
     return { date, time };
+  };
+
+  // Check if we should show the create event button
+  const shouldShowCreateButton = () => {
+    // Only show on published tab when there are no events and no search query
+    return (
+      activeTab === "published" && !searchQuery && filteredEvents.length === 0
+    );
   };
 
   // Error state
@@ -529,21 +557,21 @@ const MyEvents = () => {
                 />
               </div>
 
-              {/* Empty State Message */}
+              {/* Empty State Message - Dynamic based on tab */}
               <p className="text-gray-600 text-base font-medium mb-4 text-center px-4">
-                {searchQuery
-                  ? "No events found matching your search"
-                  : "You are yet to create an event"}
+                {getEmptyStateMessage()}
               </p>
 
-              {/* Create Event Button */}
-              <button
-                onClick={() => navigate("/dashboard/create-event")}
-                className="inline-flex items-center gap-2 px-7 py-3 bg-indigo-900 hover:bg-indigo-950 text-white font-medium rounded-lg transition-colors"
-              >
-                <span className="text-xl font-light">+</span>
-                <span>Create Event</span>
-              </button>
+              {/* Create Event Button - Only show on published tab with no search */}
+              {shouldShowCreateButton() && (
+                <button
+                  onClick={() => navigate("/dashboard/create-event")}
+                  className="inline-flex items-center gap-2 px-7 py-3 bg-indigo-900 hover:bg-indigo-950 text-white font-medium rounded-lg transition-colors"
+                >
+                  <span className="text-xl font-light">+</span>
+                  <span>Create Event</span>
+                </button>
+              )}
             </div>
           ) : (
             <>

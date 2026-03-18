@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   FiSearch,
   FiFilter,
@@ -8,6 +8,7 @@ import {
   FiClock,
   FiMapPin,
   FiUsers,
+  FiX,
 } from "react-icons/fi";
 import empty from "../../../assets/Frame.png";
 import { CircleDollarSign } from "lucide-react";
@@ -178,6 +179,12 @@ const MobileEventCard = ({ event, onManage }) => {
 const Overview = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Date filter states
+  const [showDateFilter, setShowDateFilter] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
   const ITEMS_PER_PAGE = 10;
   const navigate = useNavigate();
 
@@ -195,8 +202,40 @@ const Overview = () => {
 
   // Extract data from API response
   const overview = overviewData?.overview || {};
-  const events = overviewData?.data?.filteredEvents || [];
   const pagination = overviewData?.data?.pagination || {};
+
+  // Apply client-side date filtering - FIXED: Moved events inside useMemo
+  const displayEvents = useMemo(() => {
+    const events = overviewData?.data?.filteredEvents || [];
+
+    // If no date filters, return all events
+    if (!startDate && !endDate) return events;
+
+    // Apply date filters
+    return events.filter((event) => {
+      const eventDate = new Date(event.date);
+
+      if (startDate && endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999); // Include the entire end date
+        return eventDate >= start && eventDate <= end;
+      }
+
+      if (startDate) {
+        const start = new Date(startDate);
+        return eventDate >= start;
+      }
+
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        return eventDate <= end;
+      }
+
+      return true;
+    });
+  }, [overviewData, startDate, endDate]);
 
   // Calculate stats from API data
   const stats = [
@@ -332,6 +371,18 @@ const Overview = () => {
     }
   };
 
+  // Date filter handlers
+  const handleApplyDateFilter = () => {
+    setShowDateFilter(false);
+    setCurrentPage(1); // Reset to first page when filter changes
+  };
+
+  const clearDateFilter = () => {
+    setStartDate("");
+    setEndDate("");
+    setCurrentPage(1);
+  };
+
   const getStatusColor = (status) => {
     const colors = {
       ongoing: "bg-green-100 text-green-700",
@@ -373,6 +424,20 @@ const Overview = () => {
     }
 
     return { date, time };
+  };
+
+  // Format date for display in filter button
+  const getDateFilterDisplay = () => {
+    if (startDate && endDate) {
+      return `${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}`;
+    }
+    if (startDate) {
+      return `From ${new Date(startDate).toLocaleDateString()}`;
+    }
+    if (endDate) {
+      return `Until ${new Date(endDate).toLocaleDateString()}`;
+    }
+    return "Filter By Date";
   };
 
   // Error state
@@ -435,17 +500,114 @@ const Overview = () => {
             />
             <input
               type="text"
-              placeholder="search events by name, date or status"
+              placeholder="search events by name or status"
               value={searchQuery}
               onChange={handleSearchChange}
               className="w-full h-10 sm:h-11 pl-10 sm:pl-12 pr-4 bg-white border border-gray-300 rounded-lg text-xs sm:text-sm text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          <button className="h-10 sm:h-11 px-4 sm:px-5 flex items-center justify-center gap-2 border border-gray-300 rounded-lg text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap">
-            <FiFilter size={14} />
-            <span>Filter By Date</span>
-          </button>
+
+          {/* Filter Button with Date Range Display */}
+          <div className="relative">
+            <button
+              onClick={() => setShowDateFilter(!showDateFilter)}
+              className={`h-10 sm:h-11 px-4 cursor-pointer sm:px-5 flex items-center justify-center gap-2 border rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
+                startDate || endDate
+                  ? "border-indigo-900 bg-indigo-50 text-indigo-900"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <FiFilter size={14} />
+              <span className="max-w-37.5 truncate">
+                {getDateFilterDisplay()}
+              </span>
+              {(startDate || endDate) && (
+                <FiX
+                  size={14}
+                  className="ml-1 hover:text-red-600"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    clearDateFilter();
+                  }}
+                />
+              )}
+            </button>
+
+            {/* Date Filter Dropdown */}
+            {showDateFilter && (
+              <>
+                {/* Backdrop */}
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setShowDateFilter(false)}
+                />
+
+                {/* Dropdown */}
+                <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-20 p-4">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                    Filter by Date Range
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Start Date
+                      </label>
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        End Date
+                      </label>
+                      <input
+                        type="date"
+                        value={endDate}
+                        min={startDate} // Prevent end date before start date
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        onClick={() => {
+                          clearDateFilter();
+                          setShowDateFilter(false);
+                        }}
+                        className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                      >
+                        Clear
+                      </button>
+                      <button
+                        onClick={handleApplyDateFilter}
+                        className="flex-1 px-3 py-2 text-sm font-medium text-white bg-indigo-900 rounded-lg hover:bg-indigo-950 transition-colors"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
+
+        {/* Active Filters Display */}
+        {(startDate || endDate) && (
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-xs text-gray-500">Active filters:</span>
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-50 text-indigo-900 text-xs rounded-md">
+              <FiCalendar size={12} />
+              {getDateFilterDisplay()}
+            </span>
+          </div>
+        )}
 
         {/* Events Display - Mobile Cards / Desktop Table */}
         {isLoading ? (
@@ -477,7 +639,7 @@ const Overview = () => {
               </tbody>
             </table>
           </div>
-        ) : events.length === 0 ? (
+        ) : displayEvents.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 sm:py-16 lg:py-20">
             {/* Folder Illustration */}
             <div className="mb-4 w-32 sm:w-40 lg:w-50 h-24 sm:h-32 lg:h-40">
@@ -492,7 +654,9 @@ const Overview = () => {
             <p className="text-sm sm:text-base text-gray-600 font-medium mb-4 sm:mb-6 text-center px-4">
               {searchQuery
                 ? "No events found matching your search"
-                : "You are yet to create an event"}
+                : startDate || endDate
+                  ? "No events found in the selected date range"
+                  : "You are yet to create an event"}
             </p>
 
             {/* Create Event Button */}
@@ -529,7 +693,7 @@ const Overview = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {events.map((event) => {
+                  {displayEvents.map((event) => {
                     const { date, time } = formatEventDateTime(event);
                     return (
                       <tr
@@ -607,7 +771,7 @@ const Overview = () => {
 
             {/* Mobile Card View (visible only on mobile) */}
             <div className="md:hidden">
-              {events.map((event) => (
+              {displayEvents.map((event) => (
                 <MobileEventCard
                   key={event._id}
                   event={event}

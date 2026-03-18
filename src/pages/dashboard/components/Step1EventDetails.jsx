@@ -7,6 +7,7 @@ const Step1EventDetails = ({ formData, setFormData, onNext, onSaveDraft }) => {
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [isSavingDraft, setIsSavingDraft] = useState(false); // Loading state for save draft
 
   // Mock data for states and LGAs
   const states = [
@@ -55,18 +56,16 @@ const Step1EventDetails = ({ formData, setFormData, onNext, onSaveDraft }) => {
 
   // Mock event categories
   const eventCategories = [
+    "Art & Culture",
+    "Career & Business",
+    "Community",
     "Conference",
-    "Workshop",
-    "Seminar",
-    "Networking",
-    "Social Gathering",
-    "Fundraiser",
-    "Concert",
-    "Festival",
-    "Sports",
-    "Webinar",
-    "Exhibition",
-    "Other",
+    "Entertainment",
+    "Food & Drink",
+    "Health",
+    "Spirituality & Religion",
+    "Sports & Wellness",
+    "Others",
   ];
 
   // Mock LGAs based on selected state
@@ -1054,7 +1053,11 @@ const Step1EventDetails = ({ formData, setFormData, onNext, onSaveDraft }) => {
     if (file) {
       // Check file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
-        alert("Image size should be less than 5mb");
+        const error = validateField(
+          "coverImage",
+          "Image file must be less than 5mb",
+        );
+        setErrors((prev) => ({ ...prev, coverImage: error }));
         return;
       }
 
@@ -1063,8 +1066,8 @@ const Step1EventDetails = ({ formData, setFormData, onNext, onSaveDraft }) => {
         // Update formData with both preview and file
         setFormData((prev) => ({
           ...prev,
-          coverImage: event.target.result, // For preview
-          coverImageFile: file, // For FormData upload
+          coverImage: event.target.result,
+          coverImageFile: file,
         }));
 
         // Validate image after upload
@@ -1106,6 +1109,15 @@ const Step1EventDetails = ({ formData, setFormData, onNext, onSaveDraft }) => {
     }
   };
 
+  const handleSaveDraft = async () => {
+    setIsSavingDraft(true);
+    try {
+      await onSaveDraft();
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Greeting */}
@@ -1119,7 +1131,7 @@ const Step1EventDetails = ({ formData, setFormData, onNext, onSaveDraft }) => {
       </div>
 
       {/* Event Details Section */}
-      <div className="bg-white">
+      <div className="">
         <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">
           Event Details
         </h2>
@@ -1391,10 +1403,37 @@ const Step1EventDetails = ({ formData, setFormData, onNext, onSaveDraft }) => {
       {/* Action Buttons */}
       <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 justify-between items-stretch sm:items-center">
         <button
-          onClick={onSaveDraft}
-          className="w-full sm:w-auto px-4 sm:px-6 py-2 border border-gray-300 rounded-lg text-sm sm:text-base text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+          onClick={handleSaveDraft}
+          disabled={isSavingDraft}
+          className="w-full sm:w-auto px-4 sm:px-6 py-2 border border-gray-300 rounded-lg text-sm sm:text-base text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          Save Draft
+          {isSavingDraft ? (
+            <>
+              <svg
+                className="animate-spin h-4 w-4 text-gray-700"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <span>Saving...</span>
+            </>
+          ) : (
+            "Save Draft"
+          )}
         </button>
         <button
           onClick={handleNext}
@@ -1406,7 +1445,7 @@ const Step1EventDetails = ({ formData, setFormData, onNext, onSaveDraft }) => {
 
       {/* Location Modal - Responsive */}
       {isLocationModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+        <div className="fixed inset-0 bg-black/30 bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
           <div className="bg-white rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto p-4 sm:p-6">
             <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">
               Set Event Location

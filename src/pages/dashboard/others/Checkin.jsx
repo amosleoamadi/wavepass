@@ -4,12 +4,12 @@ import { useNavigate, useParams } from "react-router-dom";
 
 const CheckIn = () => {
   const { id } = useParams();
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [ticketCode, setTicketCode] = useState("");
   const [searchLoading, setSearchLoading] = useState(false);
   const [checkInLoading, setCheckInLoading] = useState(false);
   const [attendeeInfo, setAttendeeInfo] = useState(null);
   const [error, setError] = useState(null);
-  const inputRefs = useRef([]);
+  const inputRef = useRef(null);
   const navigate = useNavigate();
 
   // Mock data for demonstration
@@ -22,17 +22,16 @@ const CheckIn = () => {
     checkedInStatus: "pending", // "pending" or "checked_in"
   };
 
-  // Auto-search when OTP is complete (6 characters)
+  // Auto-search when ticket code is complete (6 characters)
   useEffect(() => {
-    const fullCode = otp.join("");
-    if (fullCode.length === 6 && id) {
-      searchAttendee(fullCode);
+    if (ticketCode.length === 6 && id) {
+      searchAttendee(ticketCode);
     } else {
       setAttendeeInfo(null);
       setError(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [otp, id]);
+  }, [ticketCode, id]);
 
   const searchAttendee = async (code) => {
     setSearchLoading(true);
@@ -56,67 +55,12 @@ const CheckIn = () => {
     }
   };
 
-  const handleChange = (index, value) => {
-    // Allow alphanumeric characters (letters and numbers)
-    if (value && !/^[a-zA-Z0-9]*$/.test(value)) return;
+  const handleChange = (e) => {
+    const value = e.target.value;
 
-    const newOtp = [...otp];
-
-    // Handle paste of multiple characters
-    if (value.length > 1) {
-      const chars = value.slice(0, 6).split("");
-      chars.forEach((char, i) => {
-        if (i < 6) newOtp[i] = char.toUpperCase();
-      });
-      setOtp(newOtp);
-
-      // Focus the next empty input or last input
-      const nextEmptyIndex = newOtp.findIndex((val) => val === "");
-      if (nextEmptyIndex !== -1) {
-        inputRefs.current[nextEmptyIndex]?.focus();
-      } else {
-        inputRefs.current[5]?.focus();
-      }
-      return;
-    }
-
-    // Handle single character - convert to uppercase for consistency
-    newOtp[index] = value.toUpperCase();
-    setOtp(newOtp);
-
-    // Auto-focus next input
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (index, e) => {
-    // Handle backspace
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData
-      .getData("text")
-      .replace(/[^a-zA-Z0-9]/g, "")
-      .slice(0, 6);
-    const newOtp = [...otp];
-
-    pastedData.split("").forEach((char, index) => {
-      if (index < 6) newOtp[index] = char.toUpperCase();
-    });
-
-    setOtp(newOtp);
-
-    // Focus the next empty input or last input
-    const nextEmptyIndex = newOtp.findIndex((val) => val === "");
-    if (nextEmptyIndex !== -1) {
-      inputRefs.current[nextEmptyIndex]?.focus();
-    } else {
-      inputRefs.current[5]?.focus();
+    // Allow alphanumeric characters and limit to 6 characters
+    if (value === "" || /^[a-zA-Z0-9]*$/.test(value)) {
+      setTicketCode(value.toUpperCase().slice(0, 6));
     }
   };
 
@@ -148,8 +92,6 @@ const CheckIn = () => {
     navigate(-1);
   };
 
-  const fullCode = otp.join("");
-
   return (
     <div className="min-h-screen bg-white p-6 md:p-8">
       {/* Back Button */}
@@ -179,40 +121,23 @@ const CheckIn = () => {
             Ticket Code
           </label>
 
-          {/* OTP Input Boxes */}
-          <div className="flex items-center gap-2 justify-between">
-            {otp.map((digit, index) => (
-              <div key={index} className="flex items-center">
-                <input
-                  ref={(el) => {
-                    inputRefs.current[index] = el;
-                  }}
-                  type="text"
-                  inputMode="text"
-                  maxLength={6}
-                  value={digit}
-                  onChange={(e) => handleChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(index, e)}
-                  onPaste={handlePaste}
-                  disabled={searchLoading || checkInLoading}
-                  className="w-12 h-14 text-center text-xl font-semibold uppercase border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#27187E] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                  autoFocus={index === 0}
-                />
-                {/* Add hyphen after the third box */}
-                {index === 2 && (
-                  <span className="text-2xl font-bold text-gray-400 mx-2">
-                    -
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
+          {/* Single Input Field */}
+          <input
+            ref={inputRef}
+            type="text"
+            value={ticketCode}
+            onChange={handleChange}
+            placeholder=""
+            disabled={searchLoading || checkInLoading}
+            className="w-full px-4 py-3 text-lg font-semibold uppercase border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#27187E] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+            autoFocus
+          />
 
           {/* Helper text */}
           <p className="text-xs text-gray-500 mt-2">
-            {fullCode.length === 6
+            {ticketCode.length === 6
               ? "✓ Code entered"
-              : `Enter ${6 - fullCode.length} more character${6 - fullCode.length !== 1 ? "s" : ""}`}
+              : `${6 - ticketCode.length} more character${6 - ticketCode.length !== 1 ? "s" : ""} needed`}
           </p>
 
           {/* Error Message */}
