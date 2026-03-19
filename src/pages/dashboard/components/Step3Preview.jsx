@@ -2,7 +2,34 @@ import React from "react";
 import { FaFacebook, FaLinkedin, FaTwitter, FaInstagram } from "react-icons/fa";
 import { FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 
-// Skeleton Components
+// Helper function to convert 24h time to 12h format with AM/PM
+const formatTimeForDisplay = (timeString) => {
+  if (!timeString) return "Not provided";
+
+  // If it's already in AM/PM format, return as is
+  if (timeString.includes("AM") || timeString.includes("PM")) {
+    return timeString;
+  }
+
+  // Convert 24h format (e.g., "16:00") to 12h format (e.g., "4:00 PM")
+  try {
+    const [hours, minutes] = timeString.split(":");
+    const hour = parseInt(hours);
+    const minute = parseInt(minutes);
+
+    if (isNaN(hour) || isNaN(minute)) return timeString;
+
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12; // Convert 0 to 12 for 12 AM
+    const displayMinute = minute.toString().padStart(2, "0");
+
+    return `${displayHour}:${displayMinute} ${ampm}`;
+  } catch {
+    return timeString;
+  }
+};
+
+// Skeleton Components (keep as is)
 const CoverImageSkeleton = () => (
   <div className="w-full h-48 sm:h-64 md:h-80 rounded-xl bg-gray-200 animate-pulse"></div>
 );
@@ -106,6 +133,18 @@ const Step3Preview = ({
     return parseFloat(price).toLocaleString();
   };
 
+  // Format the time range for display
+  const formatTimeRange = () => {
+    const start = formatTimeForDisplay(formData.startTime);
+    const end = formData.endTime
+      ? formatTimeForDisplay(formData.endTime)
+      : null;
+
+    if (!start && !end) return "Not provided";
+    if (start && !end) return start;
+    return `${start} - ${end}`;
+  };
+
   // Show skeleton loading while publishing
   if (isPublishing) {
     return (
@@ -163,7 +202,7 @@ const Step3Preview = ({
           </div>
         </div>
 
-        {/* Date and Time */}
+        {/* Date and Time - FIXED TIME DISPLAY */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 border-b border-gray-200 pb-4 sm:pb-6">
           <div>
             <p className="text-xs sm:text-sm text-gray-600 font-medium mb-1">
@@ -178,8 +217,7 @@ const Step3Preview = ({
               Event Time
             </p>
             <p className="text-base sm:text-lg font-semibold text-gray-900 wrap-break-word">
-              {formData.startTime || "Not provided"}
-              {formData.endTime && ` - ${formData.endTime}`}
+              {formatTimeRange()}
             </p>
           </div>
         </div>

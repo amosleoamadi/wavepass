@@ -14,8 +14,15 @@ import empty from "../../../assets/Frame.png";
 import { CircleDollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useGetOverviewDataQuery } from "../../../services/overview";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 
-// Skeleton Components
+// Extend dayjs with plugins
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+// Skeleton Components (keep as is)
 const StatSkeleton = () => (
   <div className="border rounded-xl p-4 sm:p-6 flex flex-col justify-between bg-gray-50 animate-pulse">
     <div className="flex items-start justify-between mb-2 sm:mb-3">
@@ -55,6 +62,58 @@ const TableRowSkeleton = () => (
   </tr>
 );
 
+// Helper functions for date/time formatting
+const formatEventDate = (dateStr) => {
+  if (!dateStr) return "N/A";
+  try {
+    // If it's already in MM/DD/YYYY format, return as is
+    if (typeof dateStr === "string" && dateStr.includes("/")) {
+      const [month, day, year] = dateStr.split("/");
+      const date = new Date(`${year}-${month}-${day}`);
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    }
+
+    // Otherwise parse as date
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+};
+
+const formatEventTime = (timeStr) => {
+  if (!timeStr) return "N/A";
+  try {
+    // Extract the time part from the ISO string
+    // "2026-03-20T10:00:00.000Z" -> "10:00"
+    const timePart = timeStr.split("T")[1]?.substring(0, 5);
+
+    if (timePart) {
+      const [hours, minutes] = timePart.split(":");
+      const hour = parseInt(hours);
+      const minute = parseInt(minutes);
+
+      // Convert to 12-hour format with AM/PM
+      const ampm = hour >= 12 ? "PM" : "AM";
+      const displayHour = hour % 12 || 12; // Convert 0 to 12 for 12 AM
+      const displayMinute = minute.toString().padStart(2, "0");
+
+      return `${displayHour}:${displayMinute} ${ampm}`;
+    }
+    return timeStr;
+  } catch {
+    return timeStr;
+  }
+};
+
 // Mobile Event Card Component
 const MobileEventCard = ({ event, onManage }) => {
   const getStatusColor = (status) => {
@@ -65,35 +124,6 @@ const MobileEventCard = ({ event, onManage }) => {
       past: "bg-red-100 text-red-700",
     };
     return colors[status?.toLowerCase()] || "bg-gray-100 text-gray-700";
-  };
-
-  // Format date
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "N/A";
-    try {
-      const date = new Date(dateStr);
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-    } catch {
-      return dateStr;
-    }
-  };
-
-  // Format time
-  const formatTime = (dateStr) => {
-    if (!dateStr) return "N/A";
-    try {
-      const date = new Date(dateStr);
-      return date.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return dateStr;
-    }
   };
 
   return (
@@ -142,15 +172,15 @@ const MobileEventCard = ({ event, onManage }) => {
         <div className="flex flex-col items-center text-center">
           <FiCalendar className="w-4 h-4 text-gray-500 mb-1" />
           <span className="text-xs text-gray-700 font-medium">
-            {formatDate(event.date)}
+            {formatEventDate(event.date)}
           </span>
         </div>
 
-        {/* Time */}
+        {/* Time - Fixed: using event.start with formatEventTime */}
         <div className="flex flex-col items-center text-center">
           <FiClock className="w-4 h-4 text-gray-500 mb-1" />
           <span className="text-xs text-gray-700 font-medium">
-            {formatTime(event.start)}
+            {formatEventTime(event.start)}
           </span>
         </div>
 
@@ -204,11 +234,8 @@ const Overview = () => {
   const overview = overviewData?.overview || {};
   const pagination = overviewData?.data?.pagination || {};
 
-  // Apply client-side date filtering - FIXED: Moved events inside useMemo
   const displayEvents = useMemo(() => {
     const events = overviewData?.data?.filteredEvents || [];
-
-    // If no date filters, return all events
     if (!startDate && !endDate) return events;
 
     // Apply date filters
@@ -218,7 +245,7 @@ const Overview = () => {
       if (startDate && endDate) {
         const start = new Date(startDate);
         const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999); // Include the entire end date
+        end.setHours(23, 59, 59, 999);
         return eventDate >= start && eventDate <= end;
       }
 
@@ -374,7 +401,7 @@ const Overview = () => {
   // Date filter handlers
   const handleApplyDateFilter = () => {
     setShowDateFilter(false);
-    setCurrentPage(1); // Reset to first page when filter changes
+    setCurrentPage(1);
   };
 
   const clearDateFilter = () => {
@@ -391,39 +418,6 @@ const Overview = () => {
       past: "bg-red-100 text-red-700",
     };
     return colors[status?.toLowerCase()] || "bg-gray-100 text-gray-700";
-  };
-
-  // Format date and time from the API response
-  const formatEventDateTime = (event) => {
-    let date = "N/A";
-    let time = "N/A";
-
-    if (event.date) {
-      try {
-        const dateObj = new Date(event.date);
-        date = dateObj.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        });
-      } catch {
-        date = event.date;
-      }
-    }
-
-    if (event.start) {
-      try {
-        const timeObj = new Date(event.start);
-        time = timeObj.toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-      } catch {
-        time = event.start;
-      }
-    }
-
-    return { date, time };
   };
 
   // Format date for display in filter button
@@ -568,7 +562,7 @@ const Overview = () => {
                       <input
                         type="date"
                         value={endDate}
-                        min={startDate} // Prevent end date before start date
+                        min={startDate}
                         onChange={(e) => setEndDate(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
@@ -694,7 +688,6 @@ const Overview = () => {
                 </thead>
                 <tbody>
                   {displayEvents.map((event) => {
-                    const { date, time } = formatEventDateTime(event);
                     return (
                       <tr
                         key={event._id}
@@ -725,11 +718,15 @@ const Overview = () => {
                           </div>
                         </td>
 
-                        {/* Date & Time */}
+                        {/* Date & Time - Fixed */}
                         <td className="py-4 px-4">
                           <div className="text-xs sm:text-sm">
-                            <p className="font-medium text-gray-900">{date}</p>
-                            <p className="text-xs text-gray-500">{time}</p>
+                            <p className="font-medium text-gray-900">
+                              {formatEventDate(event.date)}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatEventTime(event.start)}
+                            </p>
                           </div>
                         </td>
 
