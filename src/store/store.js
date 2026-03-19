@@ -4,6 +4,7 @@ import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import { authApi } from "../services/authApi";
 import { overviewApi } from "../services/overview";
+import { attendeeApi } from "../services/attendeeApi";
 
 const userPersistConfig = {
   key: "user",
@@ -17,11 +18,16 @@ export const store = configureStore({
     user: persistedUserReducer,
     [authApi.reducerPath]: authApi.reducer,
     [overviewApi.reducerPath]: overviewApi.reducer,
+    [attendeeApi.reducerPath]: attendeeApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,
-    }).concat(authApi.middleware, overviewApi.middleware),
+    }).concat(
+      authApi.middleware,
+      overviewApi.middleware,
+      attendeeApi.middleware,
+    ),
 });
 
 export const persistor = persistStore(store);
