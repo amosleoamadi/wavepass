@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import heroImg from "../../assets/public/heroImg.jpg";
 import { Ticket } from "lucide-react";
@@ -7,6 +7,17 @@ import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/discover?search=${encodeURIComponent(searchTerm.trim())}`);
+    } else {
+      navigate("/discover");
+    }
+  };
+
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
@@ -16,9 +27,7 @@ const Hero = () => {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-      },
+      transition: { staggerChildren: 0.2 },
     },
   };
 
@@ -38,13 +47,13 @@ const Hero = () => {
           variants={staggerContainer}
           initial="hidden"
           animate="visible"
-          className="w-[95%] md:w-[80%] lg:w-[38%] h-auto md:h-[80%] flex flex-col items-center gap-7.5"
+          className="w-[95%] md:w-[80%] lg:w-[45%] h-auto flex flex-col items-center gap-7.5"
         >
           <motion.div
             variants={fadeInUp}
             className="p-[8px_20px] flex justify-center items-center gap-2.5 bg-white rounded-full text-[#27187E]"
           >
-            <Ticket />
+            <Ticket size={18} />
             <h4 className="font-semibold text-[12px]">
               The next generation of ticketing
             </h4>
@@ -85,30 +94,32 @@ const Hero = () => {
             events happening around you.
           </motion.h4>
 
-          <motion.div
+          <motion.form
+            onSubmit={handleSearch}
             variants={fadeInUp}
-            whileFocus={{ scale: 1.02 }}
             className="w-full max-w-2xl bg-white p-2 rounded-full flex items-center shadow-2xl"
           >
             <div className="flex-1 flex items-center px-2 md:px-4 gap-2 md:gap-3">
               <FiSearch className="text-gray-400 w-4 h-4 md:w-5 md:h-5" />
               <input
                 type="text"
-                placeholder="Search events..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search events by name or keyword..."
                 className="w-full bg-transparent border-none focus:ring-0 text-[12px] md:text-sm py-2 text-gray-700 placeholder:text-gray-400 outline-none"
               />
             </div>
             <button
-              onClick={() => navigate("/auth/register")}
+              type="submit"
               className="bg-[#241B7A] text-white px-6 md:px-10 py-2.5 md:py-3 rounded-full font-bold text-[12px] md:text-sm hover:bg-[#1a145a] transition-colors"
             >
-              Sign Up
+              Search
             </button>
-          </motion.div>
+          </motion.form>
 
           <motion.div
             variants={fadeInUp}
-            className="flex flex-wrap md:flex-wrap justify-center items-center gap-2 md:gap-12 w-full py-2 -mt-3"
+            className="flex flex-wrap justify-center items-center gap-2 md:gap-12 w-full py-2 -mt-3"
           >
             {[
               { icon: <FiZap />, text: "Fast booking" },

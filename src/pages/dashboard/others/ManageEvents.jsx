@@ -12,7 +12,46 @@ import empty from "../../../assets/Frame.png";
 import { useNavigate } from "react-router-dom";
 import { useGetOverviewDataQuery } from "../../../services/overview";
 
-// Skeleton Components
+// Helper function to format time from ISO string to AM/PM
+const formatTimeFromISO = (isoString) => {
+  if (!isoString) return "N/A";
+  try {
+    const timePart = isoString.split("T")[1]?.substring(0, 5);
+
+    if (timePart) {
+      const [hours, minutes] = timePart.split(":");
+      const hour = parseInt(hours);
+      const minute = parseInt(minutes);
+
+      // Convert to 12-hour format with AM/PM
+      const ampm = hour >= 12 ? "PM" : "AM";
+      const displayHour = hour % 12 || 12; // Convert 0 to 12 for 12 AM
+      const displayMinute = minute.toString().padStart(2, "0");
+
+      return `${displayHour}:${displayMinute} ${ampm}`;
+    }
+    return isoString;
+  } catch {
+    return isoString;
+  }
+};
+
+// Helper function to format date
+const formatDateFromISO = (dateStr) => {
+  if (!dateStr) return "N/A";
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+};
+
+// Skeleton Components (keep as is)
 const StatSkeleton = () => (
   <div className="border rounded-xl p-6 flex flex-col justify-between bg-gray-50 animate-pulse">
     <div className="flex items-start justify-between mb-3">
@@ -93,35 +132,6 @@ const MobileEventCard = ({ event, onManage }) => {
     return colors[status?.toLowerCase()] || "bg-gray-100 text-gray-700";
   };
 
-  // Format date
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "N/A";
-    try {
-      const date = new Date(dateStr);
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-    } catch {
-      return dateStr;
-    }
-  };
-
-  // Format time
-  const formatTime = (dateStr) => {
-    if (!dateStr) return "N/A";
-    try {
-      const date = new Date(dateStr);
-      return date.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return dateStr;
-    }
-  };
-
   // Get emoji based on event title or use default
   const getEventEmoji = (title) => {
     const emojiMap = {
@@ -195,15 +205,15 @@ const MobileEventCard = ({ event, onManage }) => {
         <div className="flex flex-col items-center text-center">
           <FiCalendar className="w-4 h-4 text-gray-500 mb-1" />
           <span className="text-xs text-gray-700 font-medium">
-            {formatDate(event.date)}
+            {formatDateFromISO(event.date)}
           </span>
         </div>
 
-        {/* Time */}
+        {/* Time - FIXED */}
         <div className="flex flex-col items-center text-center">
           <FiClock className="w-4 h-4 text-gray-500 mb-1" />
           <span className="text-xs text-gray-700 font-medium">
-            {formatTime(event.start)}
+            {formatTimeFromISO(event.start)}
           </span>
         </div>
 
@@ -230,7 +240,7 @@ const MobileEventCard = ({ event, onManage }) => {
 };
 
 const MyEvents = () => {
-  const [activeTab, setActiveTab] = useState("published"); // Changed default to "published"
+  const [activeTab, setActiveTab] = useState("published");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 7;
@@ -274,7 +284,7 @@ const MyEvents = () => {
     };
   }, [allEvents]);
 
-  // Define tabs with counts - reordered to put published first
+  // Define tabs with counts
   const tabs = useMemo(
     () => [
       {
@@ -395,42 +405,16 @@ const MyEvents = () => {
     }
   };
 
-  // Format date and time from the API response
+  // Format date and time from the API response - FIXED
   const formatEventDateTime = (event) => {
-    let date = "N/A";
-    let time = "N/A";
-
-    if (event.date) {
-      try {
-        const dateObj = new Date(event.date);
-        date = dateObj.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        });
-      } catch {
-        date = event.date;
-      }
-    }
-
-    if (event.start) {
-      try {
-        const timeObj = new Date(event.start);
-        time = timeObj.toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-      } catch {
-        time = event.start;
-      }
-    }
-
-    return { date, time };
+    return {
+      date: formatDateFromISO(event.date),
+      time: formatTimeFromISO(event.start),
+    };
   };
 
   // Check if we should show the create event button
   const shouldShowCreateButton = () => {
-    // Only show on published tab when there are no events and no search query
     return (
       activeTab === "published" && !searchQuery && filteredEvents.length === 0
     );
@@ -630,7 +614,7 @@ const MyEvents = () => {
                             </div>
                           </td>
 
-                          {/* Date & Time */}
+                          {/* Date & Time - FIXED */}
                           <td className="py-4 px-4">
                             <div className="text-sm">
                               <p className="font-medium text-gray-900">
