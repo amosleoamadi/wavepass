@@ -21,6 +21,7 @@ import EventFormContainer from "../pages/dashboard/others/CreateEvent";
 import EventTicket from "../pages/home/EventTicket";
 import EventPage from "../pages/home/EventPage";
 import CheckIn from "../pages/dashboard/others/Checkin";
+import TicketDownload from "../pages/home/TicketDownload";
 
 export const router = createBrowserRouter([
   {
@@ -91,5 +92,9 @@ export const router = createBrowserRouter([
       { path: "create-event", element: <EventFormContainer /> },
       { path: "checkin-user/:id", element: <CheckIn /> },
     ],
+  },
+  {
+    path: "/ticket-download",
+    element: <TicketDownload />,
   },
 ]);

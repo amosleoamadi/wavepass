@@ -35,7 +35,7 @@ const EventDetail = ({ event }) => {
     );
   };
   const slugify = (title) => {
-    title
+    return title
       .toLowerCase()
       .trim()
       .replace(/\s+/g, "-")
