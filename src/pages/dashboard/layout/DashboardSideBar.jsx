@@ -15,7 +15,7 @@ const Sidebar = ({ isMobile = false, onClose }) => {
     localStorage.clear();
     dispatch(logoutUser());
     if (onClose) onClose();
-    navigate("/login");
+    navigate("/auth/");
   };
 
   const linkClasses = ({ isActive }) =>
@@ -31,7 +31,10 @@ const Sidebar = ({ isMobile = false, onClose }) => {
     <div className="w-full h-full flex flex-col">
       {/* Logo - Hidden on mobile, visible on desktop */}
       {!isMobile && (
-        <div className="shrink-0 w-full h-16 flex gap-2 items-center mb-6 px-4">
+        <div
+          className="shrink-0 cursor-pointer w-full h-16 flex gap-2 items-center mb-6 px-4"
+          onClick={() => navigate("/")}
+        >
           <img src={logo} alt="logo" className="w-full h-full object-contain" />
         </div>
       )}

@@ -7,7 +7,6 @@ export const overviewApi = createApi({
     prepareHeaders: (headers, { getState }) => {
       // Get token from your user slice
       const token = getState().user?.token;
-      console.log(token);
 
       if (token) {
         headers.set("authorization", `Bearer ${token}`);
@@ -23,10 +22,32 @@ export const overviewApi = createApi({
         const queryString = new URLSearchParams(params).toString();
         return `/organizer/events?${queryString}`;
       },
-      transformResponse: (response) => response.data,
+      transformResponse: (response) => response,
+    }),
+    createEvent: builder.mutation({
+      query: (data) => ({
+        url: "/create",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    getEventByOrganizer: builder.query({
+      query: (id) => `/organizer/event/${id}`,
+    }),
+    getAllAttendee: builder.query({
+      query: ({ id, params }) => {
+        const queryString = new URLSearchParams(params).toString();
+        return `/attendees/${id}?${queryString}`;
+      },
+      transformResponse: (response) => response,
     }),
   }),
 });
 
 // Export hook for usage in components
-export const { useGetOverviewDataQuery } = overviewApi;
+export const {
+  useGetOverviewDataQuery,
+  useCreateEventMutation,
+  useGetEventByOrganizerQuery,
+  useGetAllAttendeeQuery,
+} = overviewApi;

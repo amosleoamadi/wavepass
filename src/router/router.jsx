@@ -20,6 +20,7 @@ import EventDetails from "../pages/dashboard/others/EventDetailPage";
 import EventFormContainer from "../pages/dashboard/others/CreateEvent";
 import EventTicket from "../pages/home/EventTicket";
 import EventPage from "../pages/home/EventPage";
+import CheckIn from "../pages/dashboard/others/Checkin";
 
 export const router = createBrowserRouter([
   {
@@ -88,6 +89,7 @@ export const router = createBrowserRouter([
       { path: "event-management", element: <MyEvents /> },
       { path: "event-details/:id", element: <EventDetails /> },
       { path: "create-event", element: <EventFormContainer /> },
+      { path: "checkin-user/:id", element: <CheckIn /> },
     ],
   },
 ]);
