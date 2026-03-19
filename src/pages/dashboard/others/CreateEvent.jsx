@@ -33,10 +33,38 @@ const EventFormContainer = () => {
     status: "draft",
   });
 
-  const formatDate = (dateString) => {
+  // Format date from YYYY-MM-DD to MM/DD/YYYY
+  const formatDateToMMDDYYYY = (dateString) => {
     if (!dateString) return "";
     const [year, month, day] = dateString.split("-");
     return `${month}/${day}/${year}`;
+  };
+
+  // Convert 24h time to 12h format with AM/PM
+  const convertTo12HourFormat = (timeString) => {
+    if (!timeString) return "";
+
+    // If it's already in AM/PM format, return as is
+    if (timeString.includes("AM") || timeString.includes("PM")) {
+      return timeString;
+    }
+
+    // Convert 24h format (e.g., "16:00") to 12h format (e.g., "4:00 PM")
+    try {
+      const [hours, minutes] = timeString.split(":");
+      const hour = parseInt(hours);
+      const minute = parseInt(minutes);
+
+      if (isNaN(hour) || isNaN(minute)) return timeString;
+
+      const ampm = hour >= 12 ? "PM" : "AM";
+      const displayHour = hour % 12 || 12; // Convert 0 to 12 for 12 AM
+      const displayMinute = minute.toString().padStart(2, "0");
+
+      return `${displayHour}:${displayMinute} ${ampm}`;
+    } catch {
+      return timeString;
+    }
   };
 
   const handleNextStep = () => {
@@ -60,12 +88,9 @@ const EventFormContainer = () => {
       const formDataToSend = new FormData();
 
       formDataToSend.append("title", formData.title || "Untitled Draft");
-
       formDataToSend.append("category", formData.category || "Other");
-
       formDataToSend.append("location", formData.location || "TBD");
       formDataToSend.append("description", formData.description || "");
-
       formDataToSend.append("type", formData.ticketType || "free");
       formDataToSend.append("status", "draft");
 
@@ -84,19 +109,21 @@ const EventFormContainer = () => {
         formData.ticketType === "paid" && !isNaN(price) ? price : 0;
       formDataToSend.append("price", priceValue);
 
+      // Handle date and time
       if (formData.date) {
-        formDataToSend.append("date", formatDate(formData.date));
+        // Format date to MM/DD/YYYY
+        const formattedDate = formatDateToMMDDYYYY(formData.date);
+        formDataToSend.append("date", formattedDate);
+
+        // Convert time to AM/PM format before sending
         if (formData.startTime) {
-          formDataToSend.append(
-            "start",
-            `${formData.date}T${formData.startTime}:00`,
-          );
+          const startTimeFormatted = convertTo12HourFormat(formData.startTime);
+          formDataToSend.append("start", startTimeFormatted); // Sends "4:00 PM" instead of "16:00"
         }
+
         if (formData.endTime) {
-          formDataToSend.append(
-            "end",
-            `${formData.date}T${formData.endTime}:00`,
-          );
+          const endTimeFormatted = convertTo12HourFormat(formData.endTime);
+          formDataToSend.append("end", endTimeFormatted); // Sends "6:00 PM" instead of "18:00"
         }
       }
 
@@ -109,7 +136,7 @@ const EventFormContainer = () => {
 
       setMessage({
         type: "success",
-        text: response?.data?.message,
+        text: response?.data?.message || "Draft saved successfully!",
       });
 
       setTimeout(() => {
@@ -152,17 +179,22 @@ const EventFormContainer = () => {
           : 0;
       formDataToSend.append("price", priceValue);
 
-      const formattedDate = formatDate(formData.date);
-      formDataToSend.append("date", formattedDate);
+      // Handle date and time
+      if (formData.date) {
+        // Format date to MM/DD/YYYY
+        const formattedDate = formatDateToMMDDYYYY(formData.date);
+        formDataToSend.append("date", formattedDate);
 
-      if (formData.date && formData.startTime) {
-        const startTimestamp = `${formData.date}T${formData.startTime}:00`;
-        formDataToSend.append("start", startTimestamp);
-      }
+        // Convert time to AM/PM format before sending
+        if (formData.startTime) {
+          const startTimeFormatted = convertTo12HourFormat(formData.startTime);
+          formDataToSend.append("start", startTimeFormatted); // Sends "4:00 PM" instead of "16:00"
+        }
 
-      if (formData.date && formData.endTime) {
-        const endTimestamp = `${formData.date}T${formData.endTime}:00`;
-        formDataToSend.append("end", endTimestamp);
+        if (formData.endTime) {
+          const endTimeFormatted = convertTo12HourFormat(formData.endTime);
+          formDataToSend.append("end", endTimeFormatted); // Sends "6:00 PM" instead of "18:00"
+        }
       }
 
       formDataToSend.append("facebook", formData.socialLinks[0] || "");
@@ -174,7 +206,7 @@ const EventFormContainer = () => {
 
       setMessage({
         type: "success",
-        text: response?.data?.message,
+        text: response?.data?.message || "Event published successfully!",
       });
 
       setTimeout(() => {

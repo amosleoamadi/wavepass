@@ -10,6 +10,8 @@ import {
   FiMail,
   FiPhone,
   FiUser,
+  FiClock,
+  FiMapPin,
 } from "react-icons/fi";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import empty from "../../../assets/Frame.png";
@@ -18,6 +20,45 @@ import {
   useGetEventByOrganizerQuery,
   useGetAllAttendeeQuery,
 } from "../../../services/overview";
+
+// Helper function to format time from ISO string to AM/PM
+const formatTimeFromISO = (isoString) => {
+  if (!isoString) return "N/A";
+  try {
+    const timePart = isoString.split("T")[1]?.substring(0, 5);
+
+    if (timePart) {
+      const [hours, minutes] = timePart.split(":");
+      const hour = parseInt(hours);
+      const minute = parseInt(minutes);
+
+      // Convert to 12-hour format with AM/PM
+      const ampm = hour >= 12 ? "PM" : "AM";
+      const displayHour = hour % 12 || 12; // Convert 0 to 12 for 12 AM
+      const displayMinute = minute.toString().padStart(2, "0");
+
+      return `${displayHour}:${displayMinute} ${ampm}`;
+    }
+    return isoString;
+  } catch {
+    return isoString;
+  }
+};
+
+// Helper function to format date
+const formatDateFromISO = (dateStr) => {
+  if (!dateStr) return "N/A";
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+};
 
 // Stats Card Skeleton
 const StatSkeleton = () => (
@@ -284,7 +325,9 @@ const EventDetails = () => {
       checkedIn,
       unchecked,
       location: event.location,
-      date: event.date,
+      date: formatDateFromISO(event.date),
+      startTime: formatTimeFromISO(event.start),
+      endTime: formatTimeFromISO(event.end),
     };
   }, [eventDataResponse]);
 
@@ -368,7 +411,7 @@ const EventDetails = () => {
   };
 
   const copyEventLink = () => {
-    const link = `${window.location.origin}/event/${id}`;
+    const link = `${window.location.origin}/event/ticket?key=${eventDataResponse.data?.key}`;
     navigator.clipboard.writeText(link);
     setCopyButtonText("Copied!");
 
@@ -442,6 +485,32 @@ const EventDetails = () => {
             <p className="text-sm sm:text-base text-gray-600">
               {eventData?.subtitle || "Event description"}
             </p>
+
+            {/* Date and Time Section - Added below description */}
+            <div className="mt-4 flex flex-wrap gap-4 sm:gap-6">
+              {/* Location */}
+              <div className="flex items-center gap-2 text-gray-600">
+                <FiMapPin className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="text-sm sm:text-base">
+                  {eventData?.location || "Location not specified"}
+                </span>
+              </div>
+
+              {/* Date */}
+              <div className="flex items-center gap-2 text-gray-600">
+                <FiCalendar className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="text-sm sm:text-base">{eventData?.date}</span>
+              </div>
+
+              {/* Time */}
+              <div className="flex items-center gap-2 text-gray-600">
+                <FiClock className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="text-sm sm:text-base">
+                  {eventData?.startTime}{" "}
+                  {eventData?.endTime && `- ${eventData?.endTime}`}
+                </span>
+              </div>
+            </div>
           </div>
         )}
 
