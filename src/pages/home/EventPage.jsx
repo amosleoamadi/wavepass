@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useLocation, useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import EventDetail from "../../components/ui/EventDetail";
 import { useGetEventDetailsQuery } from "../../services/attendeeApi";
@@ -32,30 +32,29 @@ const SkeletonLoader = () => (
 );
 
 const EventPage = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const { id: idFromParams } = useParams();
+  const [searchParams] = useSearchParams();
 
-  const id = location.state?.id || idFromParams;
+  const eventKey = searchParams.get("key");
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [id]);
+  }, [eventKey]);
 
-  const { data, isLoading, isError } = useGetEventDetailsQuery(id, {
-    skip: !id,
+  const { data, isLoading, isError } = useGetEventDetailsQuery(eventKey, {
+    skip: !eventKey,
   });
 
-  if (!id) {
+  if (!eventKey) {
     return (
       <div className="w-full h-[70vh] flex flex-col items-center justify-center text-center px-6">
         <AlertCircle size={48} className="text-gray-200 mb-4" />
         <h2 className="text-xl font-bold text-gray-800 mb-2">
-          Missing Event Identity
+          Missing Event Key
         </h2>
         <p className="text-gray-400 text-sm max-w-xs mb-6">
-          We couldn't find the unique ID for this event. Please try navigating
-          from the Explore page.
+          We couldn't find the event key in the URL. Please try again from the
+          Explore page.
         </p>
         <button
           onClick={() => navigate("/discover")}
@@ -92,7 +91,10 @@ const EventPage = () => {
         <EventDetail event={data?.data} />
 
         <div className="mt-16 border-t border-gray-50 pt-16">
-          <SimilarEvents category={data?.data?.category} currentEventId={id} />
+          <SimilarEvents
+            category={data?.data?.category}
+            currentEventId={data?.data?._id}
+          />
         </div>
       </section>
     </div>
