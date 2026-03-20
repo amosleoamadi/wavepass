@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Minus, Plus, Loader2, AlertCircle } from "lucide-react";
 import { Skeleton, ConfigProvider } from "antd";
 import {
@@ -8,12 +8,16 @@ import {
 } from "../../services/attendeeApi";
 
 const EventTicket = () => {
-  const location = useLocation();
-  const { id: idFromParams } = useParams();
-  const id = location.state?.id || idFromParams;
+  const [searchParams] = useSearchParams();
+  const eventKey = searchParams.get("key");
   const navigate = useNavigate();
 
-  const { data: response, isLoading: isFetching } = useGetEventDetailsQuery(id);
+  const { data: response, isLoading: isFetching } = useGetEventDetailsQuery(
+    eventKey,
+    {
+      skip: !eventKey,
+    },
+  );
   const event = response?.data;
 
   const purchaseLimit = event?.limit || 1;
@@ -121,7 +125,6 @@ const EventTicket = () => {
       <div className="min-h-screen w-full bg-gray-50/30 p-4 md:p-10 lg:py-12">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            {/* Form Section */}
             <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8 shadow-sm">
               <h2 className="text-xl font-bold text-gray-800 mb-8 tracking-tight">
                 Ticket Details
@@ -202,7 +205,6 @@ const EventTicket = () => {
                             : `Attendee ${index + 1}`}
                         </h4>
 
-                        {/* All inputs forced to single column (stacking) */}
                         <div className="space-y-4">
                           <div className="space-y-2">
                             <label className="text-[11px] font-bold text-gray-400 uppercase">
@@ -297,7 +299,6 @@ const EventTicket = () => {
               </form>
             </div>
 
-            {/* Event Summary Card */}
             <div className="bg-white shadow-sm border border-gray-100 p-6 rounded-2xl sticky top-10">
               <div className="rounded-xl overflow-hidden mb-6 aspect-video">
                 <img
