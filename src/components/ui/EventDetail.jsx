@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   MapPin,
   Calendar,
@@ -13,6 +13,8 @@ import { useNavigate } from "react-router-dom";
 
 const EventDetail = ({ event }) => {
   const navigate = useNavigate();
+  const [copied, setCopied] = useState(false);
+
   const formatDate = (dateString) => {
     if (!dateString) return "Date TBD";
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -22,30 +24,52 @@ const EventDetail = ({ event }) => {
     });
   };
 
-  const formatTime = (timeString) => {
-    if (!timeString) return "10:00 am WAT";
-    return (
-      new Date(timeString)
-        .toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        })
-        .toLowerCase() + " WAT"
-    );
+  const formatTime = (timeStr) => {
+    if (!timeStr) return "N/A";
+    try {
+      const timePart = timeStr.split("T")[1]?.substring(0, 5);
+
+      if (timePart) {
+        const [hours, minutes] = timePart.split(":");
+        const hour = parseInt(hours);
+        const minute = parseInt(minutes);
+
+        // Convert to 12-hour format with AM/PM
+        const ampm = hour >= 12 ? "PM" : "AM";
+        const displayHour = hour % 12 || 12; // Convert 0 to 12 for 12 AM
+        const displayMinute = minute.toString().padStart(2, "0");
+
+        return `${displayHour}:${displayMinute} ${ampm}`;
+      }
+      return timeStr;
+    } catch {
+      return timeStr;
+    }
   };
+
   const slugify = (title) => {
-    title
+    return title
       .toLowerCase()
       .trim()
       .replace(/\s+/g, "-")
       .replace(/[^a-z0-9-]/g, "");
   };
-  const formatDateToDMY = (date) => {
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+
+  const handleCopyEventLink = async () => {
+    if (!event?.key) return;
+
+    const eventLink = `${window.location.origin}/event?key=${encodeURIComponent(event.key)}`;
+
+    try {
+      await navigator.clipboard.writeText(eventLink);
+      setCopied(true);
+
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to copy event link:", error);
+    }
   };
 
   if (!event) return null;
@@ -65,9 +89,7 @@ const EventDetail = ({ event }) => {
 
         <button
           onClick={() =>
-            navigate(`/event-ticket/${slugify(event.title)}`, {
-              state: { id: event._id },
-            })
+            navigate(`/event-ticket?key=${encodeURIComponent(event.key)}`)
           }
           className="w-full bg-[#241B7A] hover:bg-[#1a135d] text-white font-bold py-6 rounded-xl transition-all active:scale-[0.98] text-sm cursor-pointer"
         >
@@ -80,6 +102,7 @@ const EventDetail = ({ event }) => {
           <h3 className="font-bold text-gray-900 text-[11px] mb-3 uppercase tracking-tight">
             Follow us on our socials
           </h3>
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 text-gray-400">
               <a
@@ -90,6 +113,7 @@ const EventDetail = ({ event }) => {
               >
                 <Linkedin className="w-5 h-5" />
               </a>
+
               <a
                 href={event.instagram}
                 target="_blank"
@@ -98,6 +122,7 @@ const EventDetail = ({ event }) => {
               >
                 <Instagram className="w-5 h-5" />
               </a>
+
               <a
                 href={event.facebook}
                 target="_blank"
@@ -106,6 +131,7 @@ const EventDetail = ({ event }) => {
               >
                 <Facebook className="w-5 h-5" />
               </a>
+
               <a
                 href={event.twitter}
                 target="_blank"
@@ -114,23 +140,22 @@ const EventDetail = ({ event }) => {
               >
                 <Youtube className="w-5 h-5" />
               </a>
+
               <span className="font-bold text-lg leading-none cursor-pointer hover:text-[#241B7A]">
                 𝕏
               </span>
             </div>
 
-            <div
+            <button
+              type="button"
+              onClick={handleCopyEventLink}
               className="flex flex-col items-center gap-0.5 text-gray-400 cursor-pointer hover:text-[#241B7A]"
-              onClick={() =>
-                navigator.share?.({
-                  title: event.title,
-                  url: window.location.href,
-                })
-              }
             >
               <Share2 className="w-5 h-5" />
-              <span className="text-[9px] font-bold uppercase">Share</span>
-            </div>
+              <span className="text-[9px] font-bold uppercase">
+                {copied ? "Copied" : "Share"}
+              </span>
+            </button>
           </div>
         </div>
       </div>
@@ -150,12 +175,14 @@ const EventDetail = ({ event }) => {
             <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
             <span className="text-[14px] font-medium">{event.location}</span>
           </div>
+
           <div className="flex items-center gap-3 text-gray-500">
             <Calendar className="w-4 h-4 shrink-0" />
             <span className="text-[14px] font-medium">
               {formatDate(event.date)}
             </span>
           </div>
+
           <div className="flex items-center gap-3 text-gray-500">
             <Clock className="w-4 h-4 shrink-0" />
             <span className="text-[14px] font-medium">

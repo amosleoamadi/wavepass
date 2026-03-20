@@ -2,24 +2,20 @@ import { CircleDollarSign } from "lucide-react";
 import React, { useState, useMemo } from "react";
 import {
   FiSearch,
-  FiFilter,
   FiChevronLeft,
   FiChevronRight,
   FiCopy,
   FiCalendar,
   FiMail,
   FiPhone,
-  FiUser,
   FiClock,
   FiMapPin,
+  FiAlertCircle,
 } from "react-icons/fi";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import empty from "../../../assets/Frame.png";
 import { GoPlus } from "react-icons/go";
-import {
-  useGetEventByOrganizerQuery,
-  useGetAllAttendeeQuery,
-} from "../../../services/overview";
+import { useGetEventByOrganizerQuery } from "../../../services/overview";
 
 // Helper function to format time from ISO string to AM/PM
 const formatTimeFromISO = (isoString) => {
@@ -32,9 +28,8 @@ const formatTimeFromISO = (isoString) => {
       const hour = parseInt(hours);
       const minute = parseInt(minutes);
 
-      // Convert to 12-hour format with AM/PM
       const ampm = hour >= 12 ? "PM" : "AM";
-      const displayHour = hour % 12 || 12; // Convert 0 to 12 for 12 AM
+      const displayHour = hour % 12 || 12;
       const displayMinute = minute.toString().padStart(2, "0");
 
       return `${displayHour}:${displayMinute} ${ampm}`;
@@ -58,6 +53,61 @@ const formatDateFromISO = (dateStr) => {
   } catch {
     return dateStr;
   }
+};
+
+// Helper function to check if event is today or in the past
+const isEventAccessible = (eventDate) => {
+  if (!eventDate) return false;
+
+  // Get current date in Nigeria timezone (UTC+1)
+  const now = new Date();
+  const nigeriaTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "Africa/Lagos" }),
+  );
+  const eventDateObj = new Date(eventDate);
+
+  // Set both dates to start of day for comparison
+  const todayStart = new Date(
+    nigeriaTime.getFullYear(),
+    nigeriaTime.getMonth(),
+    nigeriaTime.getDate(),
+  );
+  const eventStart = new Date(
+    eventDateObj.getFullYear(),
+    eventDateObj.getMonth(),
+    eventDateObj.getDate(),
+  );
+
+  // Event is accessible if it's today or in the past
+  return eventStart <= todayStart;
+};
+
+// Helper function to get remaining days until event
+const getDaysUntilEvent = (eventDate) => {
+  if (!eventDate) return null;
+
+  const now = new Date();
+  const nigeriaTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "Africa/Lagos" }),
+  );
+  const eventDateObj = new Date(eventDate);
+
+  // Set both dates to start of day
+  const todayStart = new Date(
+    nigeriaTime.getFullYear(),
+    nigeriaTime.getMonth(),
+    nigeriaTime.getDate(),
+  );
+  const eventStart = new Date(
+    eventDateObj.getFullYear(),
+    eventDateObj.getMonth(),
+    eventDateObj.getDate(),
+  );
+
+  const diffTime = eventStart - todayStart;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  return diffDays;
 };
 
 // Stats Card Skeleton
@@ -114,7 +164,6 @@ const TableRowSkeleton = () => (
 // Mobile Attendee Card Skeleton
 const MobileAttendeeCardSkeleton = () => (
   <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4 animate-pulse">
-    {/* Top section - Name and Status */}
     <div className="flex justify-between items-start mb-3">
       <div className="flex-1">
         <div className="w-32 h-5 bg-gray-200 rounded mb-2"></div>
@@ -125,10 +174,7 @@ const MobileAttendeeCardSkeleton = () => (
         <div className="w-16 h-4 bg-gray-200 rounded"></div>
       </div>
     </div>
-
-    {/* Bottom section - Details in 2 columns */}
     <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100">
-      {/* Email */}
       <div className="flex flex-col">
         <div className="flex items-center mb-1">
           <div className="w-3 h-3 bg-gray-200 rounded mr-1"></div>
@@ -136,8 +182,6 @@ const MobileAttendeeCardSkeleton = () => (
         </div>
         <div className="w-24 h-3 bg-gray-200 rounded"></div>
       </div>
-
-      {/* Phone */}
       <div className="flex flex-col">
         <div className="flex items-center mb-1">
           <div className="w-3 h-3 bg-gray-200 rounded mr-1"></div>
@@ -145,8 +189,6 @@ const MobileAttendeeCardSkeleton = () => (
         </div>
         <div className="w-20 h-3 bg-gray-200 rounded"></div>
       </div>
-
-      {/* Purchase Date */}
       <div className="flex flex-col">
         <div className="flex items-center mb-1">
           <div className="w-3 h-3 bg-gray-200 rounded mr-1"></div>
@@ -189,14 +231,18 @@ const PaginationSkeleton = () => (
 
 // Mobile Attendee Card Component
 const MobileAttendeeCard = ({ attendee }) => {
-  const getStatusColor = (status) => {
-    const statusLower = status?.toLowerCase();
-    return statusLower === "checked in" || statusLower === "checkedin"
+  const isCheckedIn = attendee.isCheckedIn || false;
+
+  const getStatusColor = () => {
+    return isCheckedIn
       ? "bg-green-100 text-green-700"
       : "bg-yellow-100 text-yellow-700";
   };
 
-  // Format date
+  const getStatusText = () => {
+    return isCheckedIn ? "Checked In" : "Pending";
+  };
+
   const formatDate = (dateStr) => {
     if (!dateStr) return "N/A";
     try {
@@ -213,16 +259,15 @@ const MobileAttendeeCard = ({ attendee }) => {
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-      {/* Top section - Name and Status */}
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">
           <h3 className="font-semibold text-gray-900 text-base mb-1">
-            {attendee.name}
+            {attendee.fullname}
           </h3>
           <span
-            className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(attendee.status)}`}
+            className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor()}`}
           >
-            {attendee.status === "checkedin" ? "Checked In" : attendee.status}
+            {getStatusText()}
           </span>
         </div>
         <div className="text-right">
@@ -231,9 +276,7 @@ const MobileAttendeeCard = ({ attendee }) => {
         </div>
       </div>
 
-      {/* Bottom section - Details in 2 columns */}
       <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100">
-        {/* Email */}
         <div className="flex flex-col">
           <div className="flex items-center text-gray-500 mb-1">
             <FiMail className="w-3 h-3 mr-1" />
@@ -244,23 +287,21 @@ const MobileAttendeeCard = ({ attendee }) => {
           </span>
         </div>
 
-        {/* Phone */}
         <div className="flex flex-col">
           <div className="flex items-center text-gray-500 mb-1">
             <FiPhone className="w-3 h-3 mr-1" />
             <span className="text-xs">Phone</span>
           </div>
-          <span className="text-xs text-gray-700">{attendee.phone}</span>
+          <span className="text-xs text-gray-700">{attendee.phoneNumber}</span>
         </div>
 
-        {/* Purchase Date */}
         <div className="flex flex-col">
           <div className="flex items-center text-gray-500 mb-1">
             <FiCalendar className="w-3 h-3 mr-1" />
             <span className="text-xs">Purchase Date</span>
           </div>
           <span className="text-xs text-gray-700">
-            {formatDate(attendee.purchaseDate)}
+            {formatDate(attendee.createdAt)}
           </span>
         </div>
       </div>
@@ -275,111 +316,80 @@ const EventDetails = () => {
   const [filterStatus, setFilterStatus] = useState("All");
   const [page, setPage] = useState(1);
   const [copyButtonText, setCopyButtonText] = useState("Copy link");
-  const ITEMS_PER_PAGE = 7;
-
-  // Fetch event details
-  const {
-    data: eventDataResponse,
-    isLoading: eventLoading,
-    error: eventError,
-  } = useGetEventByOrganizerQuery(id);
+  const ITEMS_PER_PAGE = 10;
 
   // Determine status value for API
   const getApiStatus = () => {
     if (filterStatus === "All") return "";
-    return filterStatus === "Checked In" ? "checkedin" : "pending";
+    if (filterStatus === "Checked In") return "checkedin";
+    if (filterStatus === "Pending") return "pending";
+    return "";
   };
 
-  // Fetch attendees with pagination and filters
+  // Fetch event data with query parameters
   const {
-    data: attendeesResponse,
-    isLoading: attendeesLoading,
-    isFetching: attendeesFetching,
-    error: attendeesError,
-  } = useGetAllAttendeeQuery({
-    id,
-    params: {
-      pageNumber: page,
-      pageSize: ITEMS_PER_PAGE,
-      status: getApiStatus(),
-    },
+    data: response,
+    isLoading,
+    isFetching,
+    error,
+  } = useGetEventByOrganizerQuery(id, {
+    pageNumber: page,
+    pageSize: ITEMS_PER_PAGE,
+    status: getApiStatus(),
+    search: searchQuery,
   });
 
-  // Extract data from responses
+  // Extract event data
   const eventData = useMemo(() => {
-    if (!eventDataResponse?.data) return null;
-    const event = eventDataResponse.data;
-
-    const totalTickets = event.quantity || 0;
-    const checkedIn = event.ticketSold || 0;
-    const unchecked = totalTickets - checkedIn;
+    if (!response?.event) return null;
+    const event = response.event;
+    const overview = response.overview || {};
 
     return {
       id: event._id,
       title: event.title,
-      subtitle:
-        event.description?.substring(0, 50) +
-          (event.description?.length > 50 ? "..." : "") || "Event description",
-      totalRevenue: `₦${((event.ticketSold || 0) * (event.price || 0)).toLocaleString()}`,
-      totalTickets,
-      checkedIn,
-      unchecked,
+      description: event.description,
       location: event.location,
-      date: formatDateFromISO(event.date),
+      date: event.date,
+      formattedDate: formatDateFromISO(event.date),
       startTime: formatTimeFromISO(event.start),
       endTime: formatTimeFromISO(event.end),
+      key: event.key,
+      totalRevenue: `₦${((overview.ticketSold || 0) * (event.price || 0)).toLocaleString()}`,
+      totalTickets: overview.ticketSold || 0,
+      checkedIn: overview.checkedIn || 0,
+      unchecked: overview.unchecked || 0,
     };
-  }, [eventDataResponse]);
+  }, [response]);
 
-  // Extract overview stats from the attendees response
-  const overviewStats = useMemo(() => {
-    return (
-      attendeesResponse?.overview || {
-        revenue: 0,
-        ticketSold: 0,
-        unchecked: 0,
-        checkedIn: 0,
-      }
-    );
-  }, [attendeesResponse]);
+  // Check if event is accessible for check-in
+  const isEventActive = useMemo(() => {
+    if (!eventData?.date) return false;
+    return isEventAccessible(eventData.date);
+  }, [eventData]);
+
+  // Get days until event
+  const daysUntilEvent = useMemo(() => {
+    if (!eventData?.date) return null;
+    return getDaysUntilEvent(eventData.date);
+  }, [eventData]);
 
   // Extract attendees from response
   const allAttendees = useMemo(() => {
-    return attendeesResponse?.data?.attendees || [];
-  }, [attendeesResponse]);
+    return response?.data?.attendees || [];
+  }, [response]);
 
   // Get pagination info from the API response
   const pagination = useMemo(() => {
     return (
-      attendeesResponse?.data?.pagination || {
+      response?.data?.pagination || {
         pageNumber: 1,
         pageSize: ITEMS_PER_PAGE,
         totalAttendees: 0,
         totalPages: 0,
       }
     );
-  }, [attendeesResponse]);
-
-  // Client-side filtering based on search query
-  const filteredAttendees = useMemo(() => {
-    if (!allAttendees.length) return [];
-
-    if (!searchQuery) return allAttendees;
-
-    const searchLower = searchQuery.toLowerCase();
-    return allAttendees.filter((attendee) => {
-      return (
-        attendee.name?.toLowerCase().includes(searchLower) ||
-        attendee.email?.toLowerCase().includes(searchLower) ||
-        attendee.code?.toLowerCase().includes(searchLower) ||
-        attendee.phone?.includes(searchQuery)
-      );
-    });
-  }, [allAttendees, searchQuery]);
-
-  const paginatedAttendees = useMemo(() => {
-    return filteredAttendees;
-  }, [filteredAttendees]);
+  }, [response]);
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -403,29 +413,15 @@ const EventDetails = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    const statusLower = status?.toLowerCase();
-    return statusLower === "checked in" || statusLower === "checkedin"
-      ? "bg-green-100 text-green-700"
-      : "bg-yellow-100 text-yellow-700";
-  };
-
   const copyEventLink = () => {
-    const link = `${window.location.origin}/event/ticket?key=${eventDataResponse.data?.key}`;
+    const link = `${window.location.origin}/event?key=${eventData?.key}`;
     navigator.clipboard.writeText(link);
     setCopyButtonText("Copied!");
-
-    // Reset back to "Copy link" after 2 seconds
-    setTimeout(() => {
-      setCopyButtonText("Copy link");
-    }, 2000);
+    setTimeout(() => setCopyButtonText("Copy link"), 2000);
   };
 
-  const isLoading = eventLoading || (attendeesLoading && !attendeesResponse);
-  const isFetching = attendeesFetching;
-
-  // Error state - only for real errors
-  if (eventError || (attendeesError && attendeesError?.status !== 404)) {
+  // Error state
+  if (error) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
@@ -483,12 +479,12 @@ const EventDetails = () => {
               {eventData?.title || "Event Title"}
             </h1>
             <p className="text-sm sm:text-base text-gray-600">
-              {eventData?.subtitle || "Event description"}
+              {eventData?.description?.substring(0, 100) +
+                (eventData?.description?.length > 100 ? "..." : "") ||
+                "Event description"}
             </p>
 
-            {/* Date and Time Section - Added below description */}
             <div className="mt-4 flex flex-wrap gap-4 sm:gap-6">
-              {/* Location */}
               <div className="flex items-center gap-2 text-gray-600">
                 <FiMapPin className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="text-sm sm:text-base">
@@ -496,13 +492,13 @@ const EventDetails = () => {
                 </span>
               </div>
 
-              {/* Date */}
               <div className="flex items-center gap-2 text-gray-600">
                 <FiCalendar className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="text-sm sm:text-base">{eventData?.date}</span>
+                <span className="text-sm sm:text-base">
+                  {eventData?.formattedDate}
+                </span>
               </div>
 
-              {/* Time */}
               <div className="flex items-center gap-2 text-gray-600">
                 <FiClock className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="text-sm sm:text-base">
@@ -514,7 +510,6 @@ const EventDetails = () => {
           </div>
         )}
 
-        {/* Copy Button */}
         <div className="flex items-center gap-3 shrink-0">
           <button
             onClick={copyEventLink}
@@ -560,7 +555,7 @@ const EventDetails = () => {
                     Total Revenue
                   </p>
                   <p className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900 wrap-break-word">
-                    ₦{overviewStats.revenue?.toLocaleString() || "0"}
+                    {eventData?.totalRevenue || "₦0"}
                   </p>
                 </div>
               </div>
@@ -598,7 +593,7 @@ const EventDetails = () => {
                     Total Tickets Sold
                   </p>
                   <p className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900">
-                    {overviewStats.ticketSold?.toLocaleString() || "0"}
+                    {eventData?.totalTickets?.toLocaleString() || "0"}
                   </p>
                 </div>
               </div>
@@ -642,7 +637,7 @@ const EventDetails = () => {
                     Checked In
                   </p>
                   <p className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900">
-                    {overviewStats.checkedIn?.toLocaleString() || "0"}
+                    {eventData?.checkedIn?.toLocaleString() || "0"}
                   </p>
                 </div>
               </div>
@@ -686,7 +681,7 @@ const EventDetails = () => {
                     Unchecked
                   </p>
                   <p className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900">
-                    {overviewStats.unchecked?.toLocaleString() || "0"}
+                    {eventData?.unchecked?.toLocaleString() || "0"}
                   </p>
                 </div>
               </div>
@@ -697,53 +692,46 @@ const EventDetails = () => {
 
       {/* Attendee List Section */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-        <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-4 sm:mb-6">
-          Attendee List
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
+          <h2 className="text-base sm:text-lg font-bold text-gray-900">
+            Attendee List
+          </h2>
 
-        {/* Search, Filter, and Button Bar */}
-        {isLoading ? (
-          <SearchFilterSkeleton />
-        ) : (
-          <div className="flex flex-col lg:flex-row gap-4 mb-6">
-            <div className="flex-1 relative">
-              <FiSearch
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="Search email address, attendee name or code"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                className="w-full h-11 pl-12 pr-4 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <select
-                value={filterStatus}
-                onChange={(e) => handleFilterChange(e.target.value)}
-                className="w-full sm:w-auto h-11 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                <option value="All">All</option>
-                <option value="Checked In">Checked In</option>
-                <option value="Pending">Pending</option>
-              </select>
+          {/* Check-in Button with Date Validation */}
+          {!isLoading && (
+            <div className="relative">
+              {!isEventActive && daysUntilEvent && daysUntilEvent > 0 && (
+                <div className="absolute -top-8 right-0 flex items-center gap-1 text-amber-600 text-xs bg-amber-50 px-2 py-1 rounded">
+                  <FiAlertCircle size={12} />
+                  <span>
+                    Available in {daysUntilEvent} day
+                    {daysUntilEvent !== 1 ? "s" : ""}
+                  </span>
+                </div>
+              )}
               <NavLink
                 to={`/dashboard/checkin-user/${id}`}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-lg cursor-pointer bg-[#27187E] text-white text-sm font-medium flex gap-2 items-center justify-center hover:bg-[#1f0f5a] transition-colors"
+                className={`w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-sm font-medium flex gap-2 items-center justify-center transition-colors ${
+                  isEventActive
+                    ? "bg-[#27187E] text-white cursor-pointer hover:bg-[#1f0f5a]"
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none"
+                }`}
+                onClick={(e) => {
+                  if (!isEventActive) {
+                    e.preventDefault();
+                  }
+                }}
               >
                 <GoPlus size={20} />
                 Check In Attendees
               </NavLink>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Attendees Table or Empty State */}
         {isLoading ? (
           <>
-            {/* Desktop Skeleton */}
+            <SearchFilterSkeleton />
             <div className="hidden lg:block overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -775,215 +763,225 @@ const EventDetails = () => {
                 </tbody>
               </table>
             </div>
-
-            {/* Mobile Skeleton */}
             <div className="lg:hidden">
               {[...Array(3)].map((_, index) => (
                 <MobileAttendeeCardSkeleton key={index} />
               ))}
             </div>
-
-            {/* Pagination Skeleton */}
             <PaginationSkeleton />
           </>
-        ) : allAttendees.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 sm:py-20 border border-gray-200 rounded-lg">
-            {/* Folder Illustration */}
-            <div className="mb-4 w-32 sm:w-40 md:w-50 h-24 sm:h-32 md:h-40">
-              <img
-                src={empty}
-                alt="empty"
-                className="w-full h-full object-contain"
-              />
-            </div>
-
-            {/* Empty State Message */}
-            <p className="text-sm sm:text-base text-gray-600 font-medium mb-6 sm:mb-8 text-center px-4">
-              Your guest list is currently empty
-            </p>
-
-            {/* Copy Link Button */}
-            <button
-              onClick={copyEventLink}
-              className="inline-flex items-center gap-2 px-5 sm:px-7 py-2 sm:py-3 bg-indigo-900 hover:bg-indigo-950 text-white text-sm sm:text-base font-medium rounded-lg transition-colors min-w-35"
-            >
-              <FiCopy size={16} />
-              <span>{copyButtonText}</span>
-            </button>
-          </div>
-        ) : paginatedAttendees.length === 0 ? (
-          <div className="text-center py-8 sm:py-12">
-            <p className="text-sm sm:text-base text-gray-500">
-              No attendees found matching your search.
-            </p>
-          </div>
         ) : (
           <>
-            {/* Desktop Table View */}
-            <div className="hidden lg:block overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase">
-                      Attendee Name
-                    </th>
-                    <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase">
-                      Email Address
-                    </th>
-                    <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase">
-                      Phone No
-                    </th>
-                    <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase">
-                      Purchase Date
-                    </th>
-                    <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase">
-                      Code
-                    </th>
-                    <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase">
-                      Check-in Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedAttendees.map((attendee) => (
-                    <tr
-                      key={attendee._id || attendee.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="py-4 px-4">
-                        <p className="text-sm font-medium text-gray-900">
-                          {attendee.name}
-                        </p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm text-gray-600">
-                          {attendee.email}
-                        </p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm text-gray-600">
-                          {attendee.phone}
-                        </p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm text-gray-600">
-                          {new Date(attendee.purchaseDate).toLocaleDateString(
-                            "en-US",
-                            {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            },
-                          )}
-                        </p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <p className="text-sm font-medium text-gray-900">
-                          {attendee.code}
-                        </p>
-                      </td>
-                      <td className="py-4 px-4">
-                        <span
-                          className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(attendee.status)}`}
-                        >
-                          {attendee.status === "checkedin"
-                            ? "Checked In"
-                            : attendee.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile Card View */}
-            <div className="lg:hidden">
-              {paginatedAttendees.map((attendee) => (
-                <MobileAttendeeCard
-                  key={attendee._id || attendee.id}
-                  attendee={attendee}
+            <div className="flex flex-col lg:flex-row gap-4 mb-6">
+              <div className="flex-1 relative">
+                <FiSearch
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"
+                  size={18}
                 />
-              ))}
+                <input
+                  type="text"
+                  placeholder="Search email address, attendee name or code"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  className="w-full h-11 pl-12 pr-4 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <select
+                  value={filterStatus}
+                  onChange={(e) => handleFilterChange(e.target.value)}
+                  className="w-full sm:w-auto h-11 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  <option value="All">All</option>
+                  <option value="Checked In">Checked In</option>
+                  <option value="Pending">Pending</option>
+                </select>
+              </div>
             </div>
 
-            {/* Pagination */}
-            {!isLoading &&
-              filteredAttendees.length > 0 &&
-              pagination.totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 sm:gap-4 mt-6 sm:mt-8 lg:mt-10 pt-4 sm:pt-6 border-t border-gray-200">
-                  <button
-                    onClick={handlePrevPage}
-                    disabled={page === 1 || isFetching}
-                    className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <FiChevronLeft size={20} className="sm:w-5.5 sm:h-5.5" />
-                  </button>
-
-                  {/* Page Numbers - Hidden on mobile */}
-                  <div className="hidden sm:flex items-center gap-2">
-                    {[...Array(pagination.totalPages)].map((_, i) => {
-                      const pageNum = i + 1;
-                      if (
-                        pagination.totalPages <= 7 ||
-                        pageNum === 1 ||
-                        pageNum === pagination.totalPages ||
-                        (pageNum >= page - 2 && pageNum <= page + 2)
-                      ) {
-                        return (
-                          <button
-                            key={pageNum}
-                            onClick={() => setPage(pageNum)}
-                            disabled={isFetching}
-                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded text-xs sm:text-sm font-medium transition-colors ${
-                              page === pageNum
-                                ? "bg-indigo-900 text-white"
-                                : "text-gray-700 hover:bg-gray-100"
-                            }`}
-                          >
-                            {pageNum}
-                          </button>
-                        );
-                      } else if (
-                        (pageNum === 2 && page > 4) ||
-                        (pageNum === pagination.totalPages - 1 &&
-                          page < pagination.totalPages - 3)
-                      ) {
-                        return (
-                          <span
-                            key={pageNum}
-                            className="text-gray-500 text-xs sm:text-sm"
-                          >
-                            ...
-                          </span>
-                        );
-                      }
-                      return null;
-                    })}
-                  </div>
-
-                  {/* Mobile Pagination Info */}
-                  <span className="sm:hidden text-xs text-gray-600">
-                    Page {page} of {pagination.totalPages}
-                  </span>
-
-                  <button
-                    onClick={handleNextPage}
-                    disabled={page >= pagination.totalPages || isFetching}
-                    className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <FiChevronRight size={20} className="sm:w-5.5 sm:h-5.5" />
-                  </button>
+            {allAttendees.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 sm:py-20 border border-gray-200 rounded-lg">
+                <div className="mb-4 w-32 sm:w-40 md:w-50 h-24 sm:h-32 md:h-40">
+                  <img
+                    src={empty}
+                    alt="empty"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
-              )}
-          </>
-        )}
+                <p className="text-sm sm:text-base text-gray-600 font-medium mb-6 sm:mb-8 text-center px-4">
+                  Your guest list is currently empty
+                </p>
+                <button
+                  onClick={copyEventLink}
+                  className="inline-flex items-center gap-2 px-5 sm:px-7 py-2 sm:py-3 bg-indigo-900 hover:bg-indigo-950 text-white text-sm sm:text-base font-medium rounded-lg transition-colors min-w-35"
+                >
+                  <FiCopy size={16} />
+                  <span>{copyButtonText}</span>
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase">
+                          Attendee Name
+                        </th>
+                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase">
+                          Email Address
+                        </th>
+                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase">
+                          Phone No
+                        </th>
+                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase">
+                          Purchase Date
+                        </th>
+                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase">
+                          Code
+                        </th>
+                        <th className="text-left py-4 px-4 text-xs font-semibold text-gray-600 uppercase">
+                          Check-in Status
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allAttendees.map((attendee) => (
+                        <tr
+                          key={attendee._id || attendee.id}
+                          className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="py-4 px-4">
+                            <p className="text-sm font-medium text-gray-900">
+                              {attendee.fullname}
+                            </p>
+                          </td>
+                          <td className="py-4 px-4">
+                            <p className="text-sm text-gray-600">
+                              {attendee.email}
+                            </p>
+                          </td>
+                          <td className="py-4 px-4">
+                            <p className="text-sm text-gray-600">
+                              {attendee.phoneNumber}
+                            </p>
+                          </td>
+                          <td className="py-4 px-4">
+                            <p className="text-sm text-gray-600">
+                              {new Date(attendee.createdAt).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                },
+                              )}
+                            </p>
+                          </td>
+                          <td className="py-4 px-4">
+                            <p className="text-sm font-medium text-gray-900">
+                              {attendee.code}
+                            </p>
+                          </td>
+                          <td className="py-4 px-4">
+                            <span
+                              className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                                attendee.isCheckedIn
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-yellow-100 text-yellow-700"
+                              }`}
+                            >
+                              {attendee.isCheckedIn ? "Checked In" : "Pending"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-        {/* Loading overlay for fetch states */}
-        {isFetching && !isLoading && allAttendees.length > 0 && (
-          <div className="flex justify-center mt-4">
-            <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-indigo-900 border-t-transparent rounded-full animate-spin"></div>
-          </div>
+                <div className="lg:hidden">
+                  {allAttendees.map((attendee) => (
+                    <MobileAttendeeCard
+                      key={attendee._id || attendee.id}
+                      attendee={attendee}
+                    />
+                  ))}
+                </div>
+
+                {pagination.totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 sm:gap-4 mt-6 sm:mt-8 lg:mt-10 pt-4 sm:pt-6 border-t border-gray-200">
+                    <button
+                      onClick={handlePrevPage}
+                      disabled={page === 1 || isFetching}
+                      className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <FiChevronLeft size={20} className="sm:w-5.5 sm:h-5.5" />
+                    </button>
+
+                    <div className="hidden sm:flex items-center gap-2">
+                      {[...Array(pagination.totalPages)].map((_, i) => {
+                        const pageNum = i + 1;
+                        if (
+                          pagination.totalPages <= 7 ||
+                          pageNum === 1 ||
+                          pageNum === pagination.totalPages ||
+                          (pageNum >= page - 2 && pageNum <= page + 2)
+                        ) {
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => setPage(pageNum)}
+                              disabled={isFetching}
+                              className={`w-7 h-7 sm:w-8 sm:h-8 rounded text-xs sm:text-sm font-medium transition-colors ${
+                                page === pageNum
+                                  ? "bg-indigo-900 text-white"
+                                  : "text-gray-700 hover:bg-gray-100"
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        } else if (
+                          (pageNum === 2 && page > 4) ||
+                          (pageNum === pagination.totalPages - 1 &&
+                            page < pagination.totalPages - 3)
+                        ) {
+                          return (
+                            <span
+                              key={pageNum}
+                              className="text-gray-500 text-xs sm:text-sm"
+                            >
+                              ...
+                            </span>
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+
+                    <span className="sm:hidden text-xs text-gray-600">
+                      Page {page} of {pagination.totalPages}
+                    </span>
+
+                    <button
+                      onClick={handleNextPage}
+                      disabled={page >= pagination.totalPages || isFetching}
+                      className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <FiChevronRight size={20} className="sm:w-5.5 sm:h-5.5" />
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {isFetching && !isLoading && allAttendees.length > 0 && (
+              <div className="flex justify-center mt-4">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-indigo-900 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

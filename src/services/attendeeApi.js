@@ -19,7 +19,7 @@ export const attendeeApi = createApi({
     }),
 
     getEventDetails: builder.query({
-      query: (id) => `/event/${id}`,
+      query: (key) => `/event/ticket?key=${encodeURIComponent(key)}`,
     }),
 
     checkoutTicket: builder.mutation({

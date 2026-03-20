@@ -57,65 +57,62 @@ const Login = () => {
     }
   };
 
-  const getMessageColor = () => {
-    if (message?.type === "success") return "text-green-500";
-    return "text-red-500";
-  };
-
   return (
-    <div className="h-screen w-full flex flex-col p-4 md:p-8 overflow-hidden">
+    <div className="h-screen w-full flex flex-col p-4 md:p-6 overflow-hidden">
       <div className="flex items-center gap-2 shrink-0">
-        <div className="bg-[#241B7A] w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+        <div className="bg-[#241B7A] w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden">
           <img src={logo} alt="Logo" className="w-full h-full object-cover" />
         </div>
-        <span className="text-[#241B7A] font-bold text-base tracking-tight">
+        <span className="text-[#241B7A] font-bold text-sm tracking-tight">
           Wave Pass
         </span>
       </div>
 
       <div className="grow flex items-center justify-center">
-        <div className="w-full max-w-md bg-white rounded-3xl shadow-sm border border-gray-100 p-6 md:p-10">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-[#1E1B4B]">Welcome Back</h2>
-            <p className="text-gray-400 text-sm">Sign in to your account</p>
+        <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+          <div className="text-center mb-5">
+            <h2 className="text-xl font-bold text-[#1E1B4B]">Welcome Back</h2>
+            <p className="text-gray-400 text-xs mt-1">
+              Sign in to your account
+            </p>
           </div>
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form className="space-y-3.5" onSubmit={handleSubmit}>
             <div className="space-y-1">
-              <label className="text-[12px] font-semibold text-gray-500 ml-1 uppercase">
+              <label className="text-[11px] font-bold text-gray-400 ml-1 uppercase">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-300" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
                 <input
                   name="email"
                   type="email"
                   placeholder="name@company.com"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#241B7A] transition-all text-sm"
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#241B7A] transition-all text-sm"
                 />
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="text-[12px] font-semibold text-gray-500 ml-1 uppercase">
+              <label className="text-[11px] font-bold text-gray-400 ml-1 uppercase">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-300" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
                 <input
                   name="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full pl-11 pr-12 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#241B7A] transition-all text-sm"
+                  className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#241B7A] transition-all text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 p-2 hover:text-gray-600"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 p-2 hover:text-gray-600"
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />
@@ -124,10 +121,11 @@ const Login = () => {
                   )}
                 </button>
               </div>
-              <div className="flex justify-end pt-1">
+              <div className="flex justify-end pt-0.5">
                 <Link
                   to="/auth/forgot-password"
-                  className="text-[#241B7A] text-[12px] font-bold hover:underline"
+                  size="sm"
+                  className="text-[#241B7A] text-[11px] font-bold hover:underline"
                 >
                   Forgot password?
                 </Link>
@@ -135,22 +133,20 @@ const Login = () => {
             </div>
 
             {(errors.server || message || errors.email || errors.password) && (
-              <div className="py-1">
-                <p
-                  className={`text-center text-[11px] font-bold uppercase tracking-wider ${getMessageColor()}`}
-                >
-                  {errors.server ||
-                    errors.email ||
-                    errors.password ||
-                    message?.text}
-                </p>
-              </div>
+              <p
+                className={`text-center text-[10px] font-bold uppercase tracking-wider ${message?.type === "success" ? "text-green-500" : "text-red-500"}`}
+              >
+                {errors.server ||
+                  errors.email ||
+                  errors.password ||
+                  message?.text}
+              </p>
             )}
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#241B7A] text-white font-bold py-3.5 rounded-xl text-sm transition-all hover:bg-[#1a1459] active:scale-[0.98] flex items-center justify-center shadow-md disabled:opacity-70"
+              className="w-full bg-[#241B7A] text-white font-bold py-3 rounded-xl text-sm transition-all hover:bg-[#1a1459] active:scale-[0.98] flex items-center justify-center shadow-md disabled:opacity-70 mt-2"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -160,12 +156,12 @@ const Login = () => {
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-gray-50">
-            <p className="text-center text-sm text-gray-500">
+          <div className="mt-6 pt-5 border-t border-gray-50">
+            <p className="text-center text-xs text-gray-500">
               Don't have an account?
               <Link
                 to="/auth/register"
-                className="text-[#241B7A] font-bold ml-1.5 hover:underline"
+                className="text-[#241B7A] font-bold ml-1 hover:underline"
               >
                 Sign up
               </Link>
