@@ -414,7 +414,7 @@ const EventDetails = () => {
   };
 
   const copyEventLink = () => {
-    const link = `${window.location.origin}/event/ticket?key=${eventData?.key}`;
+    const link = `${window.location.origin}/event?key=${eventData?.key}`;
     navigator.clipboard.writeText(link);
     setCopyButtonText("Copied!");
     setTimeout(() => setCopyButtonText("Copy link"), 2000);
