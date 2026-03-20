@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   MapPin,
+  Share2,
   ChevronLeft,
   ChevronRight,
   SearchX,
@@ -29,6 +30,18 @@ const formatDateToDMY = (date) => {
   return `${day}/${month}/${year}`;
 };
 
+const handleCopyEventLink = async (eventKey, setCopiedKey) => {
+  const eventLink = `${window.location.origin}/event?key=${eventKey}`;
+
+  try {
+    await navigator.clipboard.writeText(eventLink);
+    setCopiedKey(eventKey);
+    setTimeout(() => setCopiedKey(null), 2000);
+  } catch (err) {
+    console.error("Failed to copy event link:", err);
+  }
+};
+
 const ExploreEvents = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -40,13 +53,16 @@ const ExploreEvents = () => {
   const [activeCategory, setActiveCategory] = useState("All Events");
   const [priceFilter, setPriceFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const [copiedKey, setCopiedKey] = useState(null);
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== "undefined" ? window.innerWidth : 1200,
   );
 
   useEffect(() => {
-    setCurrentIndex(0);
+    setCurrentPage(1);
+    setCarouselIndex(0);
   }, [activeCategory, priceFilter, dateFilter, searchKeyword]);
 
   useEffect(() => {
@@ -57,12 +73,15 @@ const ExploreEvents = () => {
 
   const getQueryDate = () => {
     const today = new Date();
+
     if (dateFilter === "today") return formatDateToDMY(today);
+
     if (dateFilter === "tomorrow") {
       const tomorrow = new Date();
       tomorrow.setDate(today.getDate() + 1);
       return formatDateToDMY(tomorrow);
     }
+
     return "";
   };
 
@@ -76,26 +95,40 @@ const ExploreEvents = () => {
     price: priceFilter,
     date: getQueryDate(),
     keyword: searchKeyword,
-    pageNumber: isDiscoverPage ? currentIndex + 1 : 1,
+    pageNumber: isDiscoverPage ? currentPage : 1,
     pageSize: isDiscoverPage ? 6 : 20,
   });
 
   const eventData = response?.data?.events || [];
-  const totalEvents = response?.data?.totalEvents || 0;
+  const totalEvents = response?.data?.pagination?.totalEvents || 0;
+  const totalPages = response?.data?.pagination?.totalPages || 0;
 
   const isMobile = windowWidth < 768;
   const visibleItems = isMobile ? 1 : 3;
-  const totalPages = Math.ceil(totalEvents / 6);
-
-  const maxPossibleIndex = isDiscoverPage
-    ? totalPages - 1
-    : Math.max(0, eventData.length - visibleItems);
+  const maxCarouselIndex = Math.max(0, eventData.length - visibleItems);
 
   const handleNext = () => {
-    if (currentIndex < maxPossibleIndex) setCurrentIndex((prev) => prev + 1);
+    if (isDiscoverPage) {
+      if (currentPage < totalPages) {
+        setCurrentPage((prev) => prev + 1);
+      }
+    } else {
+      if (carouselIndex < maxCarouselIndex) {
+        setCarouselIndex((prev) => prev + 1);
+      }
+    }
   };
+
   const handlePrev = () => {
-    if (currentIndex > 0) setCurrentIndex((prev) => prev - 1);
+    if (isDiscoverPage) {
+      if (currentPage > 1) {
+        setCurrentPage((prev) => prev - 1);
+      }
+    } else {
+      if (carouselIndex > 0) {
+        setCarouselIndex((prev) => prev - 1);
+      }
+    }
   };
 
   const categoryItems = [
@@ -103,11 +136,13 @@ const ExploreEvents = () => {
     { key: "Music", label: "Music" },
     { key: "Tech", label: "Tech" },
   ];
+
   const priceItems = [
     { key: "", label: "Any Price" },
     { key: "free", label: "Free" },
     { key: "paid", label: "Paid" },
   ];
+
   const dateItems = [
     { key: "", label: "Any Time" },
     { key: "today", label: "Today" },
@@ -119,7 +154,6 @@ const ExploreEvents = () => {
       theme={{ token: { colorPrimary: "#241B7A", borderRadius: 8 } }}
     >
       <div className="w-full bg-[#FBFCFF] py-10 md:py-16 font-sans">
-        {/* Header */}
         <div className="flex flex-col items-center mb-12 text-center px-4">
           <div className="relative inline-block">
             <h2 className="text-2xl md:text-3xl font-bold text-[#1E1E1E]">
@@ -133,7 +167,6 @@ const ExploreEvents = () => {
           </div>
         </div>
 
-        {/* Filters Wrapper */}
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 px-6">
           <div className="flex flex-wrap items-center gap-2">
             <Dropdown
@@ -148,6 +181,7 @@ const ExploreEvents = () => {
                 <ChevronDown size={12} />
               </button>
             </Dropdown>
+
             <Dropdown
               menu={{
                 items: priceItems,
@@ -160,6 +194,7 @@ const ExploreEvents = () => {
                 <ChevronDown size={12} />
               </button>
             </Dropdown>
+
             <Dropdown
               menu={{
                 items: dateItems,
@@ -173,10 +208,18 @@ const ExploreEvents = () => {
                 <ChevronDown size={12} />
               </button>
             </Dropdown>
-            {(searchKeyword || activeCategory !== "All Events") && (
+
+            {(searchKeyword ||
+              activeCategory !== "All Events" ||
+              priceFilter ||
+              dateFilter) && (
               <button
                 onClick={() => {
                   setActiveCategory("All Events");
+                  setPriceFilter("");
+                  setDateFilter("");
+                  setCurrentPage(1);
+                  setCarouselIndex(0);
                   navigate(pathname);
                 }}
                 className="text-[10px] text-red-500 font-bold uppercase ml-2 hover:underline"
@@ -185,6 +228,7 @@ const ExploreEvents = () => {
               </button>
             )}
           </div>
+
           {!isDiscoverPage && (
             <button
               onClick={() => navigate("/discover")}
@@ -195,7 +239,6 @@ const ExploreEvents = () => {
           )}
         </div>
 
-        {/* Content Mask (This prevents bleeding to the right edge) */}
         <div className="max-w-7xl mx-auto px-6 overflow-hidden">
           {isLoading ? (
             <div
@@ -239,57 +282,63 @@ const ExploreEvents = () => {
                 No matches found
               </h3>
             </div>
-          ) : (
-            <div
-              className={
-                isDiscoverPage
-                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
-                  : "flex transition-transform duration-500 ease-out"
-              }
-              style={
-                !isDiscoverPage
-                  ? {
-                      gap: "20px",
-                      transform: `translateX(calc(-${currentIndex} * (${isMobile ? "100%" : "calc((100% - 40px) / 3)"} + 20px)))`,
-                    }
-                  : {}
-              }
-            >
+          ) : isDiscoverPage ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {eventData.map((event) => (
                 <div
                   key={event._id}
                   onClick={() =>
-                    navigate(`/event/${slugify(event.title)}`, {
-                      state: { id: event._id },
-                    })
+                    navigate(`/event?key=${encodeURIComponent(event.key)}`)
                   }
-                  style={
-                    !isDiscoverPage
-                      ? { width: isMobile ? "100%" : "calc((100% - 40px) / 3)" }
-                      : {}
-                  }
-                  className="shrink-0 bg-white rounded-xl border border-gray-100 shadow-sm p-2.5 flex flex-col hover:shadow-md cursor-pointer transition-all"
+                  className="bg-white rounded-xl border border-gray-100 shadow-sm p-2.5 flex flex-col hover:shadow-md cursor-pointer transition-all active:scale-[0.98]"
                 >
+                  {/* Image Container */}
                   <div className="relative aspect-video w-full overflow-hidden rounded-lg mb-2.5">
                     <img
                       src={event?.cover?.url}
                       className="w-full h-full object-cover"
                       alt=""
                     />
+
+                    {/* Share Button & Text - Back at the Bottom Right */}
+                    <div className="absolute bottom-2 right-2 flex flex-col items-end gap-1">
+                      {copiedKey === event.key && (
+                        <span className="bg-white/90 px-2 py-0.5 rounded text-[9px] text-green-600 font-bold shadow-sm animate-in fade-in slide-in-from-bottom-1">
+                          Link copied
+                        </span>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopyEventLink(event.key, setCopiedKey);
+                        }}
+                        className="bg-white/90 p-1.5 rounded-full text-[#241B7A] shadow-sm hover:bg-white"
+                      >
+                        <Share2 size={12} />
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Date */}
                   <div className="flex items-center gap-1.5 text-[#4F46E5] mb-1 font-bold text-[10px] uppercase">
                     <Calendar size={10} />
                     <span>
                       {new Date(event.date).toLocaleDateString("en-GB")}
                     </span>
                   </div>
-                  <h3 className="font-bold text-[14px] text-gray-900 mb-0.5 line-clamp-1 truncate uppercase">
+
+                  {/* Title */}
+                  <h3 className="font-bold text-[14px] text-gray-900 mb-0.5 line-clamp-1 uppercase">
                     {event.title}
                   </h3>
+
+                  {/* Location */}
                   <div className="flex items-center gap-1 text-gray-400 mb-3 text-[11px]">
                     <MapPin size={12} className="shrink-0" />
                     <span className="truncate">{event.location}</span>
                   </div>
+
+                  {/* Footer */}
                   <div className="mt-auto flex items-center justify-between pt-2 border-t border-gray-50">
                     <span className="text-sm font-bold text-[#241B7A]">
                       {event.price === 0
@@ -299,9 +348,7 @@ const ExploreEvents = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/event-ticket/${slugify(event.title)}`, {
-                          state: { id: event._id },
-                        });
+                        navigate(`/event-ticket?key=${event.key}`);
                       }}
                       className="bg-[#241B7A] text-white px-3 py-1.5 rounded-md text-[11px] font-bold flex items-center gap-1.5"
                     >
@@ -311,33 +358,155 @@ const ExploreEvents = () => {
                 </div>
               ))}
             </div>
+          ) : (
+            <div className="overflow-hidden">
+              <div
+                className="flex transition-transform duration-500 ease-out"
+                style={{
+                  gap: "20px",
+                  transform: `translateX(calc(-${carouselIndex} * (${isMobile ? "100%" : "calc((100% - 40px) / 3)"} + 20px)))`,
+                }}
+              >
+                {eventData.map((event) => (
+                  <div
+                    key={event._id}
+                    onClick={() =>
+                      navigate(`/event/${event.key}`, {
+                        state: { id: event._id, key: event.key },
+                      })
+                    }
+                    style={{
+                      width: isMobile ? "100%" : "calc((100% - 40px) / 3)",
+                    }}
+                    className="shrink-0 bg-white rounded-xl border border-gray-100 shadow-sm p-2.5 flex flex-col hover:shadow-md cursor-pointer transition-all"
+                  >
+                    <div className="relative aspect-video w-full overflow-hidden rounded-lg mb-2.5">
+                      <img
+                        src={event?.cover?.url}
+                        className="w-full h-full object-cover"
+                        alt=""
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopyEventLink(event.key, setCopiedKey);
+                        }}
+                        className="absolute bottom-2 right-2 bg-white/90 p-1.5 rounded-full text-[#241B7A] shadow-sm hover:bg-white"
+                      >
+                        <Share2 size={12} />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 text-[#4F46E5] mb-1 font-bold text-[10px] uppercase">
+                      <Calendar size={10} />
+                      <span>
+                        {new Date(event.date).toLocaleDateString("en-GB")}
+                      </span>
+                    </div>
+
+                    <h3 className="font-bold text-[14px] text-gray-900 mb-0.5 line-clamp-1 truncate uppercase">
+                      {event.title}
+                    </h3>
+
+                    <div className="flex items-center gap-1 text-gray-400 mb-3 text-[11px]">
+                      <MapPin size={12} className="shrink-0" />
+                      <span className="truncate">{event.location}</span>
+                    </div>
+
+                    <div className="mt-auto flex items-center justify-between pt-2 border-t border-gray-50">
+                      <span className="text-sm font-bold text-[#241B7A]">
+                        {event.price === 0
+                          ? "Free"
+                          : `₦${event.price?.toLocaleString()}`}
+                      </span>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/event-ticket/${event.key}`, {
+                            state: { id: event._id, key: event.key },
+                          });
+                        }}
+                        className="bg-[#241B7A] text-white px-3 py-1.5 rounded-md text-[11px] font-bold flex items-center gap-1.5"
+                      >
+                        <Ticket size={14} /> Get Ticket
+                      </button>
+                    </div>
+
+                    {copiedKey === event.key && (
+                      <span className="mt-2 text-[10px] text-green-600 font-semibold">
+                        Link copied
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
 
-        {/* Footer Buttons */}
-        {!isLoading && !isError && eventData.length > visibleItems && (
+        {!isLoading && !isError && isDiscoverPage && totalPages > 1 && (
           <div className="flex justify-center items-center gap-4 mt-12 px-4">
             <button
               onClick={handlePrev}
-              disabled={currentIndex === 0}
-              className={`p-2 rounded-full border transition-all ${currentIndex === 0 ? "opacity-20 cursor-not-allowed" : "text-[#241B7A] border-gray-200 hover:bg-white shadow-sm"}`}
+              disabled={currentPage === 1}
+              className={`p-2 rounded-full border transition-all ${
+                currentPage === 1
+                  ? "opacity-20 cursor-not-allowed"
+                  : "text-[#241B7A] border-gray-200 hover:bg-white shadow-sm"
+              }`}
             >
               <ChevronLeft size={20} />
             </button>
-            {isDiscoverPage && (
-              <span className="font-bold text-gray-400 text-[10px] uppercase tracking-widest">
-                {currentIndex + 1} / {totalPages}
-              </span>
-            )}
+
+            <span className="font-bold text-gray-400 text-[10px] uppercase tracking-widest">
+              {currentPage} / {totalPages}
+            </span>
+
             <button
               onClick={handleNext}
-              disabled={currentIndex >= maxPossibleIndex}
-              className={`p-2 rounded-full border transition-all ${currentIndex >= maxPossibleIndex ? "opacity-20 cursor-not-allowed" : "text-[#241B7A] border-gray-200 hover:bg-white shadow-sm"}`}
+              disabled={currentPage === totalPages}
+              className={`p-2 rounded-full border transition-all ${
+                currentPage === totalPages
+                  ? "opacity-20 cursor-not-allowed"
+                  : "text-[#241B7A] border-gray-200 hover:bg-white shadow-sm"
+              }`}
             >
               <ChevronRight size={20} />
             </button>
           </div>
         )}
+
+        {!isLoading &&
+          !isError &&
+          !isDiscoverPage &&
+          eventData.length > visibleItems && (
+            <div className="flex justify-center items-center gap-4 mt-12 px-4">
+              <button
+                onClick={handlePrev}
+                disabled={carouselIndex === 0}
+                className={`p-2 rounded-full border transition-all ${
+                  carouselIndex === 0
+                    ? "opacity-20 cursor-not-allowed"
+                    : "text-[#241B7A] border-gray-200 hover:bg-white shadow-sm"
+                }`}
+              >
+                <ChevronLeft size={20} />
+              </button>
+
+              <button
+                onClick={handleNext}
+                disabled={carouselIndex >= maxCarouselIndex}
+                className={`p-2 rounded-full border transition-all ${
+                  carouselIndex >= maxCarouselIndex
+                    ? "opacity-20 cursor-not-allowed"
+                    : "text-[#241B7A] border-gray-200 hover:bg-white shadow-sm"
+                }`}
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          )}
       </div>
     </ConfigProvider>
   );

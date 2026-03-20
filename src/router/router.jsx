@@ -41,11 +41,11 @@ export const router = createBrowserRouter([
         element: <DiscoverEvents />,
       },
       {
-        path: "/event/:name",
+        path: "/event",
         element: <EventPage />,
       },
       {
-        path: "/event-ticket/:name",
+        path: "/event-ticket",
         element: <EventTicket />,
       },
     ],
