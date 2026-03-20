@@ -22,17 +22,27 @@ const EventDetail = ({ event }) => {
     });
   };
 
-  const formatTime = (timeString) => {
-    if (!timeString) return "10:00 am WAT";
-    return (
-      new Date(timeString)
-        .toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        })
-        .toLowerCase() + " WAT"
-    );
+  const formatTime = (timeStr) => {
+    if (!timeStr) return "N/A";
+    try {
+      const timePart = timeStr.split("T")[1]?.substring(0, 5);
+
+      if (timePart) {
+        const [hours, minutes] = timePart.split(":");
+        const hour = parseInt(hours);
+        const minute = parseInt(minutes);
+
+        // Convert to 12-hour format with AM/PM
+        const ampm = hour >= 12 ? "PM" : "AM";
+        const displayHour = hour % 12 || 12; // Convert 0 to 12 for 12 AM
+        const displayMinute = minute.toString().padStart(2, "0");
+
+        return `${displayHour}:${displayMinute} ${ampm}`;
+      }
+      return timeStr;
+    } catch {
+      return timeStr;
+    }
   };
   const slugify = (title) => {
     return title

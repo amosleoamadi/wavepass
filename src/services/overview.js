@@ -32,14 +32,20 @@ export const overviewApi = createApi({
       }),
     }),
     getEventByOrganizer: builder.query({
-      query: (id) => `/organizer/event/${id}`,
-    }),
-    getAllAttendee: builder.query({
-      query: ({ id, params }) => {
+      query: (id, params) => {
         const queryString = new URLSearchParams(params).toString();
-        return `/attendees/${id}?${queryString}`;
+        return `/organizer/event/${id}?${queryString}`;
       },
-      transformResponse: (response) => response,
+    }),
+    checkinAttendee: builder.mutation({
+      query: ({ code, eventId }) => ({
+        url: `/check-in/${eventId}`,
+        method: "POST",
+        body: { code },
+      }),
+    }),
+    getAttendeeByCode: builder.query({
+      query: (code) => `/attendee?code=${code}`,
     }),
   }),
 });
@@ -49,5 +55,6 @@ export const {
   useGetOverviewDataQuery,
   useCreateEventMutation,
   useGetEventByOrganizerQuery,
-  useGetAllAttendeeQuery,
+  useCheckinAttendeeMutation,
+  useGetAttendeeByCodeQuery,
 } = overviewApi;
