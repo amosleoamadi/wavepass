@@ -92,8 +92,6 @@ const formatEventDate = (dateStr) => {
 const formatEventTime = (timeStr) => {
   if (!timeStr) return "N/A";
   try {
-    // Extract the time part from the ISO string
-    // "2026-03-20T10:00:00.000Z" -> "10:00"
     const timePart = timeStr.split("T")[1]?.substring(0, 5);
 
     if (timePart) {
