@@ -5,6 +5,7 @@ import EmailVerificationSuccess from "../../components/ui/EmailVerificationSucce
 import {
   useVerifyEmailMutation,
   useResendCodeMutation,
+  useVerifyResetCodeMutation,
 } from "../../services/authApi";
 import logo from "../../assets/public/wavepass.png";
 
@@ -16,7 +17,8 @@ const VerifyResetCode = () => {
   const inputRefs = useRef([]);
   const navigate = useNavigate();
 
-  const [verifyEmail, { isLoading: isVerifying }] = useVerifyEmailMutation();
+  const [verifyResetCode, { isLoading: isVerifying }] =
+    useVerifyResetCodeMutation();
   const [resendCode, { isLoading: isResending }] = useResendCodeMutation();
 
   const [seconds, setSeconds] = useState(119);
@@ -92,7 +94,7 @@ const VerifyResetCode = () => {
           email: localStorage.getItem("userEmail"),
           otp: otp.join(""),
         };
-        await verifyEmail(data).unwrap();
+        await verifyResetCode(data).unwrap();
         setIsVerified(true);
       } catch (error) {
         setMessage({
