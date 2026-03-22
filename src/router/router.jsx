@@ -22,6 +22,7 @@ import EventTicket from "../pages/home/EventTicket";
 import EventPage from "../pages/home/EventPage";
 import CheckIn from "../pages/dashboard/others/Checkin";
 import TicketDownload from "../pages/home/TicketDownload";
+import PaymentVerification from "../pages/home/PaymentVerification";
 
 export const router = createBrowserRouter([
   {
@@ -47,6 +48,10 @@ export const router = createBrowserRouter([
       {
         path: "/event-ticket",
         element: <EventTicket />,
+      },
+      {
+        path: "/verify-payment",
+        element: <PaymentVerification />,
       },
     ],
   },

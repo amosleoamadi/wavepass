@@ -45,7 +45,7 @@ export const overviewApi = createApi({
       }),
     }),
     getAttendeeByCode: builder.query({
-      query: (code) => `/attendee?code=${code}`,
+      query: ({ code, id }) => `/attendee/${id}?code=${code}`,
     }),
   }),
 });

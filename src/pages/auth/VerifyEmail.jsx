@@ -7,6 +7,8 @@ import {
   useResendCodeMutation,
 } from "../../services/authApi";
 import logo from "../../assets/public/wavepass.png";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../../store/slice";
 
 const VerifyEmail = () => {
   const [otp, setOtp] = useState(new Array(6).fill(""));
@@ -15,6 +17,7 @@ const VerifyEmail = () => {
   const [isVerified, setIsVerified] = useState(false);
   const inputRefs = useRef([]);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [verifyEmail, { isLoading: isVerifying }] = useVerifyEmailMutation();
   const [resendCode, { isLoading: isResending }] = useResendCodeMutation();
@@ -89,7 +92,9 @@ const VerifyEmail = () => {
         email: localStorage.getItem("userEmail"),
         otp: otp.join(""),
       };
-      await verifyEmail(data).unwrap();
+      const response = await verifyEmail(data).unwrap();
+      const { data: user, accessToken } = response;
+      dispatch(setCredentials({ user, token: accessToken }));
       setIsVerified(true);
     } catch (error) {
       setMessage({
@@ -126,9 +131,9 @@ const VerifyEmail = () => {
   if (isVerified) {
     return (
       <EmailVerificationSuccess
-        navigate={() => navigate("/auth")}
+        navigate={() => navigate("/dashboard/overview")}
         message="Email Verification Complete"
-        buttonText="Go to Login"
+        buttonText="Go to Dashboard"
       />
     );
   }

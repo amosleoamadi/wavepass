@@ -31,16 +31,16 @@ const Header = () => {
         >
           <nav className="flex items-center gap-10">
             <Link
+              to="/"
+              className="text-[#4B5563] font-semibold text-[14px] hover:text-[#1C1661] transition-colors whitespace-nowrap"
+            >
+              Home
+            </Link>
+            <Link
               to="/discover"
               className="text-[#4B5563] font-semibold text-[14px] hover:text-[#1C1661] transition-colors whitespace-nowrap"
             >
               Discover Events
-            </Link>
-            <Link
-              to="/about"
-              className="text-[#4B5563] font-semibold text-[14px] hover:text-[#1C1661] transition-colors whitespace-nowrap"
-            >
-              About Us
             </Link>
           </nav>
 
