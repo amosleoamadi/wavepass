@@ -86,6 +86,12 @@ const EventTicket = () => {
 
     if (quantity > 1 && sendToDifferent) {
       payload.attendees = attendeeList.slice(1);
+    } else if (quantity > 1 && !sendToDifferent) {
+      payload.attendees = Array(quantity - 1).fill({
+        fullname: primary.fullname,
+        email: primary.email,
+        phoneNumber: primary.phoneNumber,
+      });
     }
 
     try {
