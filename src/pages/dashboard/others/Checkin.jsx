@@ -14,16 +14,22 @@ const CheckIn = () => {
   const navigate = useNavigate();
   const debounceTimeoutRef = useRef(null);
 
-  // Use debounced code for the API call
+  // Use debounced code for the API call - FIXED: Pass as single object
   const {
     data: attendeeResponse,
     isLoading: searchLoading,
     error: searchError,
     isFetching,
     refetch,
-  } = useGetAttendeeByCodeQuery(debouncedCode, {
-    skip: !debouncedCode || debouncedCode.trim() === "",
-  });
+  } = useGetAttendeeByCodeQuery(
+    {
+      code: debouncedCode,
+      id: id, // Pass id as part of the object
+    },
+    {
+      skip: !debouncedCode || debouncedCode.trim() === "",
+    },
+  );
 
   const [checkinAttendee, { isLoading: checkInLoading }] =
     useCheckinAttendeeMutation();
