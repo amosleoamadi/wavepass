@@ -29,6 +29,12 @@ export const attendeeApi = createApi({
         body,
       }),
     }),
+    getTicketByReference: builder.query({
+      query: (reference) => `/verify-payment?reference=${reference}`,
+    }),
+    getTicketData: builder.query({
+      query: ({ eventId, tag }) => `ticket/${eventId}/${tag}`,
+    }),
   }),
 });
 
@@ -36,4 +42,6 @@ export const {
   useGetEventsQuery,
   useGetEventDetailsQuery,
   useCheckoutTicketMutation,
+  useGetTicketByReferenceQuery,
+  useGetTicketDataQuery,
 } = attendeeApi;

@@ -75,6 +75,7 @@ const EventTicket = () => {
 
   const handleCheckout = async (e) => {
     e.preventDefault();
+
     const primary = attendeeList[0];
     const payload = {
       fullname: primary.fullname,
@@ -88,13 +89,28 @@ const EventTicket = () => {
     }
 
     try {
-      const result = await checkoutTicket({ eventId: id, ...payload }).unwrap();
-      navigate("/ticket-download", {
-        state: {
-          ticket: result.data,
-          event: event,
-        },
-      });
+      const result = await checkoutTicket({
+        eventId: event?._id,
+        ...payload,
+      }).unwrap();
+
+      if (result.redirectUrl) {
+        // If it's a paid event redirecting to Paystack/Flutterwave
+        window.location.href = result.redirectUrl;
+      } else {
+        // For free events or successful local processing
+        const firstTicket = result?.data?.[0];
+        const eventId = firstTicket?.eventId;
+        const tag = firstTicket?.tag;
+
+        // Constructing the query string
+        navigate(`/ticket-download?tag=${tag}&eventId=${eventId}`, {
+          state: {
+            tickets: result.data,
+            event: event,
+          },
+        });
+      }
     } catch (err) {
       console.error("Checkout failed", err);
     }
@@ -112,7 +128,7 @@ const EventTicket = () => {
             />
           </div>
           <div className="bg-white rounded-2xl p-8 border border-gray-100">
-            <Skeleton.Image className="!w-full !h-48 mb-6" active />
+            <Skeleton.Image className="w-full! h-48! mb-6" active />
             <Skeleton active paragraph={{ rows: 4 }} />
           </div>
         </div>

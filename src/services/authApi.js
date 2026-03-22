@@ -29,6 +29,13 @@ export const authApi = createApi({
         body: verificationCode,
       }),
     }),
+    VerifyResetCode: builder.mutation({
+      query: (resetCode) => ({
+        url: "/verify/otp",
+        method: "POST",
+        body: resetCode,
+      }),
+    }),
 
     resendCode: builder.mutation({
       query: (email) => ({
@@ -60,6 +67,7 @@ export const {
   useLoginMutation,
   useRegisterMutation,
   useVerifyEmailMutation,
+  useVerifyResetCodeMutation,
   useResendCodeMutation,
   useForgotPasswordMutation,
   useResetPasswordMutation,

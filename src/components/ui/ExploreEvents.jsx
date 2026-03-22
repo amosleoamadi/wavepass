@@ -251,12 +251,12 @@ const ExploreEvents = () => {
               {[1, 2, 3].map((n) => (
                 <div
                   key={n}
-                  className="bg-white rounded-xl border border-gray-100 p-4 w-full md:w-[360px] shrink-0"
+                  className="bg-white rounded-xl border border-gray-100 p-4 w-full md:w-90 shrink-0"
                 >
                   <Skeleton.Button
                     active
                     block
-                    className="!h-40 !rounded-lg mb-4"
+                    className="h-40! rounded-lg! mb-4"
                   />
                   <Skeleton active paragraph={{ rows: 2 }} />
                 </div>
@@ -292,7 +292,6 @@ const ExploreEvents = () => {
                   }
                   className="bg-white rounded-xl border border-gray-100 shadow-sm p-2.5 flex flex-col hover:shadow-md cursor-pointer transition-all active:scale-[0.98]"
                 >
-                  {/* Image Container */}
                   <div className="relative aspect-video w-full overflow-hidden rounded-lg mb-2.5">
                     <img
                       src={event?.cover?.url}
@@ -300,7 +299,6 @@ const ExploreEvents = () => {
                       alt=""
                     />
 
-                    {/* Share Button & Text - Back at the Bottom Right */}
                     <div className="absolute bottom-2 right-2 flex flex-col items-end gap-1">
                       {copiedKey === event.key && (
                         <span className="bg-white/90 px-2 py-0.5 rounded text-[9px] text-green-600 font-bold shadow-sm animate-in fade-in slide-in-from-bottom-1">
@@ -348,7 +346,9 @@ const ExploreEvents = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/event-ticket?key=${event.key}`);
+                        navigate(
+                          `/event-ticket?key=${encodeURIComponent(event.key)}`,
+                        );
                       }}
                       className="bg-[#241B7A] text-white px-3 py-1.5 rounded-md text-[11px] font-bold flex items-center gap-1.5"
                     >
@@ -370,11 +370,12 @@ const ExploreEvents = () => {
                 {eventData.map((event) => (
                   <div
                     key={event._id}
-                    onClick={() =>
-                      navigate(`/event/${event.key}`, {
-                        state: { id: event._id, key: event.key },
-                      })
-                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(
+                        `/event-ticket?key=${encodeURIComponent(event.key)}`,
+                      );
+                    }}
                     style={{
                       width: isMobile ? "100%" : "calc((100% - 40px) / 3)",
                     }}
@@ -423,9 +424,9 @@ const ExploreEvents = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          navigate(`/event-ticket/${event.key}`, {
-                            state: { id: event._id, key: event.key },
-                          });
+                          navigate(
+                            `/event-ticket?key=${encodeURIComponent(event.key)}`,
+                          );
                         }}
                         className="bg-[#241B7A] text-white px-3 py-1.5 rounded-md text-[11px] font-bold flex items-center gap-1.5"
                       >
