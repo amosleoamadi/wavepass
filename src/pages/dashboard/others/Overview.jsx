@@ -269,7 +269,7 @@ const Overview = () => {
         <CircleDollarSign className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
       ),
       label: "TOTAL REVENUE",
-      value: `₦${(overview.totalRevenue || 0).toLocaleString()}`,
+      value: `₦${(overview.availableBal || 0).toLocaleString()}`,
       bgColor: "bg-gradient-to-b from-[#FFEAF31F] to-[#FF00B71F]",
       borderColor: "border-pink-200",
     },
