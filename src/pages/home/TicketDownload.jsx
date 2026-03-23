@@ -18,7 +18,7 @@ const TicketDownload = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const carouselRef = useRef(null);
-  const fullPageRef = useRef(null); // The ref to capture everything
+  const fullPageRef = useRef(null);
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -72,6 +72,11 @@ const TicketDownload = () => {
     } finally {
       setIsDownloading(false);
     }
+  };
+
+  const handleShare = (attendee) => {
+    // Basic share logic placeholder to keep the onClick happy
+    message.info(`Sharing ticket for ${attendee.fullname}`);
   };
 
   if (isLoading)
@@ -134,8 +139,7 @@ const TicketDownload = () => {
             <Carousel
               ref={carouselRef}
               infinite={false}
-              slidesToShow={1} // FORCE ONE CARD
-              slidesToScroll={1}
+              slidesToShow={1}
               afterChange={(current) => setCurrentSlide(current)}
               dots={{ className: "custom-visible-dots" }}
               className="ticket-carousel"
@@ -145,16 +149,15 @@ const TicketDownload = () => {
                   key={attendee._id}
                   className="outline-none py-2 px-1 md:px-4"
                 >
-                  <div className="relative w-full p-2 rounded-[30px] md:rounded-[40px] bg-gradient-to-r from-red-500 via-purple-500 via-yellow-400 to-green-400 shadow-2xl">
+                  <div className="relative w-full p-2 rounded-[30px] md:rounded-[40px] bg-linear-to-r from-red-500 via-purple-500 via-yellow-400 to-green-400 shadow-2xl">
                     <div className="bg-white rounded-[28px] md:rounded-[38px] overflow-hidden flex flex-col md:flex-row">
-                      {/* Image side */}
-                      <div className="relative w-full md:w-[42%] h-48 sm:h-64 md:h-auto border-b md:border-b-0 md:border-r border-gray-100">
+                      <div className="relative w-full md:w-[42%] h-57.5 md:h-100 shrink-0 border-b md:border-b-0 md:border-r border-gray-100">
                         <img
                           src={cleanCoverUrl || event?.cover?.url}
                           alt="Event"
                           className="w-full h-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent" />
                         <div className="absolute bottom-4 left-5 md:bottom-8 md:left-8 text-white pr-4">
                           <div className="flex items-center gap-2 mb-0.5 md:mb-1">
                             <span className="text-[8px] md:text-[10px] font-bold uppercase opacity-60 tracking-widest">

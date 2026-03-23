@@ -1,9 +1,11 @@
 import React from "react";
 import { Ticket, CalendarCheck, LayoutPanelLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const EventFeatureSection = () => {
   const navigate = useNavigate();
+  const token = useSelector((state) => state?.user?.token);
   return (
     <div className="w-full bg-white py-12 px-4 md:px-16 font-sans">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
@@ -22,7 +24,9 @@ const EventFeatureSection = () => {
           </div>
 
           <button
-            onClick={() => navigate("/auth")}
+            onClick={() =>
+              token ? navigate("/dashboard/overview") : navigate("/auth")
+            }
             className="bg-[#241B7A] text-white px-8 py-3.5 rounded-xl font-semibold text-sm w-fit hover:bg-[#1a145e] transition-all"
           >
             Create event
