@@ -147,7 +147,6 @@ const Header = () => {
         </button>
       </div>
 
-      {/* Mobile Drawer */}
       <div
         className={`fixed inset-0 bg-black/20 z-60 transition-opacity md:hidden ${isMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
         onClick={() => setIsMenuOpen(false)}
