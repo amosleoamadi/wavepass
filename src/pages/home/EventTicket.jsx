@@ -99,7 +99,7 @@ const EventTicket = () => {
         window.location.href = result.redirectUrl;
       } else {
         // For free events or successful local processing
-        const firstTicket = result?.data?.[0];
+        const firstTicket = result?.data;
         const eventId = firstTicket?.eventId;
         const tag = firstTicket?.tag;
 
