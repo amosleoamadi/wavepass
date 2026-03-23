@@ -131,7 +131,7 @@ const VerifyEmail = () => {
   if (isVerified) {
     return (
       <EmailVerificationSuccess
-        navigate={() => navigate("/dashboard")}
+        navigate={() => navigate("/dashboard/overview")}
         message="Email Verification Complete"
         buttonText="Go to Dashboard"
       />

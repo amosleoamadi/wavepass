@@ -18,7 +18,7 @@ const TicketDownload = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const carouselRef = useRef(null);
-  const fullPageRef = useRef(null); // The ref to capture everything
+  const fullPageRef = useRef(null);
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);

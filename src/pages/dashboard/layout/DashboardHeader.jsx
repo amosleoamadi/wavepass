@@ -12,22 +12,42 @@ const DashboardHeader = ({
   setOpenProfile,
 }) => {
   const user = useSelector((state) => state.user?.user);
-  const userFullName = user?.fullname || "User";
+  const userFullName = user?.fullname || "";
   const userEmail = user?.email || "";
 
   const getUserInitial = () => {
-    if (userFullName && userFullName !== "User") {
-      // Get first letter of first name and last name
-      const nameParts = userFullName.split(" ");
-      if (nameParts.length >= 2) {
-        return nameParts[0][0].toUpperCase();
-      }
+    if (
+      userFullName &&
+      userFullName !== "User" &&
+      userFullName !== "undefined" &&
+      userFullName.trim() !== ""
+    ) {
+      const trimmedName = userFullName.trim();
+      const nameParts = trimmedName.split(" ");
 
-      return nameParts[0].toUpperCase();
+      if (nameParts.length >= 2 && nameParts[0] && nameParts[1]) {
+        // Get first letter of first name and first letter of last name
+        return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
+      } else if (nameParts[0]) {
+        // Get first two letters or just first letter if only one character
+        const firstPart = nameParts[0];
+        if (firstPart.length >= 2) {
+          return firstPart.substring(0, 2).toUpperCase();
+        }
+        return firstPart[0].toUpperCase();
+      }
     }
 
-    if (userEmail) {
-      return userEmail.substring(0, 2).toUpperCase();
+    // Fallback to email if fullname is not available
+    if (
+      userEmail &&
+      userEmail !== "" &&
+      userEmail !== "undefined" &&
+      userEmail.trim() !== ""
+    ) {
+      // Get first two characters from email
+      const emailPrefix = userEmail.trim().substring(0, 2).toUpperCase();
+      return emailPrefix;
     }
 
     // Default fallback
@@ -63,7 +83,9 @@ const DashboardHeader = ({
       <div className="flex items-center justify-end w-10 sm:w-auto">
         {/* Desktop Profile */}
         <div className="hidden sm:flex items-center px-10 gap-3">
-          <p className="text-sm font-medium text-gray-700">{userFullName}</p>
+          <p className="text-sm font-medium text-gray-700">
+            {userFullName || "User"}
+          </p>
           <div className="w-12 h-12 rounded-full bg-[#27187E] uppercase text-lg text-white flex items-center justify-center font-medium shadow-sm">
             {userInitial}
           </div>

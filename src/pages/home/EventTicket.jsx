@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Minus, Plus, Loader2, AlertCircle } from "lucide-react";
-import { Skeleton, ConfigProvider } from "antd";
+import { Skeleton, ConfigProvider, message } from "antd";
 import {
   useGetEventDetailsQuery,
   useCheckoutTicketMutation,
@@ -86,6 +86,12 @@ const EventTicket = () => {
 
     if (quantity > 1 && sendToDifferent) {
       payload.attendees = attendeeList.slice(1);
+    } else if (quantity > 1 && !sendToDifferent) {
+      payload.attendees = Array(quantity - 1).fill({
+        fullname: primary.fullname,
+        email: primary.email,
+        phoneNumber: primary.phoneNumber,
+      });
     }
 
     try {
@@ -94,16 +100,17 @@ const EventTicket = () => {
         ...payload,
       }).unwrap();
 
+      message.success(result?.message || "Checkout successful!");
+
       if (result.redirectUrl) {
-        // If it's a paid event redirecting to Paystack/Flutterwave
         window.location.href = result.redirectUrl;
       } else {
-        // For free events or successful local processing
-        const firstTicket = result?.data;
+        const firstTicket = Array.isArray(result.data)
+          ? result?.data[0]
+          : result?.data;
         const eventId = firstTicket?.eventId;
         const tag = firstTicket?.tag;
 
-        // Constructing the query string
         navigate(`/ticket-download?tag=${tag}&eventId=${eventId}`, {
           state: {
             tickets: result.data,
@@ -112,6 +119,10 @@ const EventTicket = () => {
         });
       }
     } catch (err) {
+      // DISPLAY ERROR MESSAGE FROM BACKEND
+      const errorMsg =
+        err?.data?.message || "Checkout failed. Please try again.";
+      message.error(errorMsg);
       console.error("Checkout failed", err);
     }
   };
