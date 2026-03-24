@@ -47,6 +47,12 @@ export const overviewApi = createApi({
     getAttendeeByCode: builder.query({
       query: ({ code, id }) => `/attendee/${id}?code=${code}`,
     }),
+    endTicketSales: builder.query({
+      query: (id) => `/sale/${id}`,
+    }),
+    startTicketSales: builder.query({
+      query: (id) => `/sold/${id}`,
+    }),
   }),
 });
 
@@ -57,4 +63,6 @@ export const {
   useGetEventByOrganizerQuery,
   useCheckinAttendeeMutation,
   useGetAttendeeByCodeQuery,
+  useEndTicketSalesQuery,
+  useStartTicketSalesQuery,
 } = overviewApi;

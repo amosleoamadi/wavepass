@@ -1,5 +1,5 @@
 import { CircleDollarSign } from "lucide-react";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   FiSearch,
   FiChevronLeft,
@@ -11,11 +11,61 @@ import {
   FiClock,
   FiMapPin,
   FiAlertCircle,
+  FiX,
+  FiLoader,
+  FiCheckCircle,
+  FiXCircle,
 } from "react-icons/fi";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import empty from "../../../assets/Frame.png";
 import { GoPlus } from "react-icons/go";
-import { useGetEventByOrganizerQuery } from "../../../services/overview";
+import {
+  useGetEventByOrganizerQuery,
+  useEndTicketSalesQuery,
+  useStartTicketSalesQuery,
+} from "../../../services/overview";
+
+// Toast component
+const Toast = ({ message, type, onClose }) => {
+  const [isVisible, setIsVisible] = useState(true);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(false);
+      onClose();
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  if (!isVisible) return null;
+
+  const bgColor =
+    type === "success"
+      ? "bg-green-50 border-green-200"
+      : "bg-red-50 border-red-200";
+  const textColor = type === "success" ? "text-green-800" : "text-red-800";
+  const Icon = type === "success" ? FiCheckCircle : FiXCircle;
+
+  return (
+    <div
+      className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg border ${bgColor} shadow-lg animate-slide-in`}
+    >
+      <Icon
+        className={`w-5 h-5 ${type === "success" ? "text-green-500" : "text-red-500"}`}
+      />
+      <span className={`text-sm font-medium ${textColor}`}>{message}</span>
+      <button
+        onClick={() => {
+          setIsVisible(false);
+          onClose();
+        }}
+        className="ml-2"
+      >
+        <FiX className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+      </button>
+    </div>
+  );
+};
 
 // Helper function to format time from ISO string to AM/PM
 const formatTimeFromISO = (isoString) => {
@@ -55,31 +105,31 @@ const formatDateFromISO = (dateStr) => {
   }
 };
 
-// Helper function to check if event is today or in the past
-const isEventAccessible = (eventDate) => {
-  if (!eventDate) return false;
+// Helper function to check if event has passed based on end time
+const isEventPast = (endDateTime) => {
+  if (!endDateTime) return false;
 
-  // Get current date in Nigeria timezone (UTC+1)
   const now = new Date();
   const nigeriaTime = new Date(
     now.toLocaleString("en-US", { timeZone: "Africa/Lagos" }),
   );
-  const eventDateObj = new Date(eventDate);
+  const eventEndTime = new Date(endDateTime);
 
-  // Set both dates to start of day for comparison
-  const todayStart = new Date(
-    nigeriaTime.getFullYear(),
-    nigeriaTime.getMonth(),
-    nigeriaTime.getDate(),
-  );
-  const eventStart = new Date(
-    eventDateObj.getFullYear(),
-    eventDateObj.getMonth(),
-    eventDateObj.getDate(),
+  return nigeriaTime > eventEndTime;
+};
+
+// Helper function to check if event is accessible for check-in (event has started)
+const isEventAccessible = (eventDate, eventStartTime) => {
+  if (!eventDate || !eventStartTime) return false;
+
+  // Combine date and start time
+  const eventStartDateTime = new Date(eventStartTime);
+  const now = new Date();
+  const nigeriaTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "Africa/Lagos" }),
   );
 
-  // Event is accessible if it's today or in the past
-  return eventStart <= todayStart;
+  return nigeriaTime >= eventStartDateTime;
 };
 
 // Helper function to get remaining days until event
@@ -92,7 +142,6 @@ const getDaysUntilEvent = (eventDate) => {
   );
   const eventDateObj = new Date(eventDate);
 
-  // Set both dates to start of day
   const todayStart = new Date(
     nigeriaTime.getFullYear(),
     nigeriaTime.getMonth(),
@@ -316,15 +365,18 @@ const EventDetails = () => {
   const [filterStatus, setFilterStatus] = useState("All");
   const [page, setPage] = useState(1);
   const [copyButtonText, setCopyButtonText] = useState("Copy link");
+  const [showEndSaleConfirm, setShowEndSaleConfirm] = useState(false);
+  const [showStartSaleConfirm, setShowStartSaleConfirm] = useState(false);
+  const [toast, setToast] = useState(null);
   const ITEMS_PER_PAGE = 10;
 
   // Determine status value for API
-  const getApiStatus = () => {
+  const getApiStatus = useCallback(() => {
     if (filterStatus === "All") return "";
     if (filterStatus === "Checked In") return "checkedin";
     if (filterStatus === "Pending") return "pending";
     return "";
-  };
+  }, [filterStatus]);
 
   // Fetch event data with query parameters
   const {
@@ -332,6 +384,7 @@ const EventDetails = () => {
     isLoading,
     isFetching,
     error,
+    refetch,
   } = useGetEventByOrganizerQuery(id, {
     pageNumber: page,
     pageSize: ITEMS_PER_PAGE,
@@ -339,7 +392,27 @@ const EventDetails = () => {
     search: searchQuery,
   });
 
-  // Extract event data
+  // Fetch ticket sales status - GET queries
+  const { data: endTicketSalesData, isLoading: isEndingSalesLoading } =
+    useEndTicketSalesQuery(id, {
+      skip: !id || !showEndSaleConfirm,
+    });
+
+  const { data: startTicketSalesData, isLoading: isStartingSalesLoading } =
+    useStartTicketSalesQuery(id, {
+      skip: !id || !showStartSaleConfirm,
+    });
+
+  // Show toast notification
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+  };
+
+  const closeToast = () => {
+    setToast(null);
+  };
+
+  // Extract event data from response
   const eventData = useMemo(() => {
     if (!response?.event) return null;
     const event = response.event;
@@ -351,6 +424,8 @@ const EventDetails = () => {
       description: event.description,
       location: event.location,
       date: event.date,
+      start: event.start,
+      end: event.end,
       formattedDate: formatDateFromISO(event.date),
       startTime: formatTimeFromISO(event.start),
       endTime: formatTimeFromISO(event.end),
@@ -359,13 +434,20 @@ const EventDetails = () => {
       totalTickets: overview.ticketSold || 0,
       checkedIn: overview.checkedIn || 0,
       unchecked: overview.unchecked || 0,
+      isTicketOnSale: event.isTicketOnSale ?? true,
     };
   }, [response]);
 
-  // Check if event is accessible for check-in
-  const isEventActive = useMemo(() => {
-    if (!eventData?.date) return false;
-    return isEventAccessible(eventData.date);
+  // Check if event has passed based on end time
+  const isEventPassed = useMemo(() => {
+    if (!eventData?.end) return false;
+    return isEventPast(eventData.end);
+  }, [eventData]);
+
+  // Check if event is accessible for check-in (event has started)
+  const isCheckinAvailable = useMemo(() => {
+    if (!eventData?.start) return false;
+    return isEventAccessible(eventData.date, eventData.start);
   }, [eventData]);
 
   // Get days until event
@@ -391,8 +473,33 @@ const EventDetails = () => {
     );
   }, [response]);
 
+  // Effect to handle end ticket sales response
+  React.useEffect(() => {
+    if (endTicketSalesData && showEndSaleConfirm) {
+      setShowEndSaleConfirm(false);
+      refetch();
+      showToast("Ticket sales ended successfully", "success");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [endTicketSalesData]);
+
+  // Effect to handle start ticket sales response
+  React.useEffect(() => {
+    if (startTicketSalesData && showStartSaleConfirm) {
+      setShowStartSaleConfirm(false);
+      refetch();
+      showToast("Ticket sales started successfully", "success");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startTicketSalesData]);
+
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
+    setPage(1);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
     setPage(1);
   };
 
@@ -418,6 +525,14 @@ const EventDetails = () => {
     navigator.clipboard.writeText(link);
     setCopyButtonText("Copied!");
     setTimeout(() => setCopyButtonText("Copy link"), 2000);
+  };
+
+  const handleEndTicketSales = () => {
+    setShowEndSaleConfirm(true);
+  };
+
+  const handleStartTicketSales = () => {
+    setShowStartSaleConfirm(true);
   };
 
   // Error state
@@ -456,6 +571,11 @@ const EventDetails = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      {/* Toast Notification */}
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={closeToast} />
+      )}
+
       {/* Back Button */}
       <div className="flex items-center gap-3">
         <button
@@ -530,12 +650,37 @@ const EventDetails = () => {
         >
           Edit Event
         </button>
-        <button
-          disabled={isLoading}
-          className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg text-sm sm:text-base hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          End Ticket Sale
-        </button>
+
+        {/* Conditional Ticket Sales Button - Only show if event hasn't passed */}
+        {!isEventPassed ? (
+          eventData?.isTicketOnSale ? (
+            <button
+              onClick={handleEndTicketSales}
+              disabled={isLoading || isEndingSalesLoading}
+              className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg text-sm sm:text-base hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isEndingSalesLoading && <FiLoader className="animate-spin" />}
+              End Ticket Sale
+            </button>
+          ) : (
+            <button
+              onClick={handleStartTicketSales}
+              disabled={isLoading || isStartingSalesLoading}
+              className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-lg text-sm sm:text-base hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isStartingSalesLoading && <FiLoader className="animate-spin" />}
+              Start Ticket Sale
+            </button>
+          )
+        ) : (
+          <button
+            disabled
+            className="w-full sm:w-auto px-4 py-2 bg-gray-400 text-white rounded-lg text-sm sm:text-base cursor-not-allowed font-medium"
+            title="Event has already passed"
+          >
+            Event Passed
+          </button>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -690,6 +835,65 @@ const EventDetails = () => {
         )}
       </div>
 
+      {/* End Ticket Sales Confirmation Modal */}
+      {showEndSaleConfirm && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4">End Ticket Sales</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to end ticket sales for this event? This
+              action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowEndSaleConfirm(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEndTicketSales}
+                disabled={isEndingSalesLoading}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+              >
+                {isEndingSalesLoading && <FiLoader className="animate-spin" />}
+                Confirm End Sales
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Start Ticket Sales Confirmation Modal */}
+      {showStartSaleConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4">Start Ticket Sales</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to start ticket sales for this event?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowStartSaleConfirm(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleStartTicketSales}
+                disabled={isStartingSalesLoading}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
+              >
+                {isStartingSalesLoading && (
+                  <FiLoader className="animate-spin" />
+                )}
+                Confirm Start Sales
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Attendee List Section */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
@@ -697,11 +901,11 @@ const EventDetails = () => {
             Attendee List
           </h2>
 
-          {/* Check-in Button with Date Validation */}
+          {/* Check-in Button - Disabled if event has passed */}
           {!isLoading && (
             <div className="relative">
-              {!isEventActive && daysUntilEvent && daysUntilEvent > 0 && (
-                <div className="absolute -top-8 right-0 flex items-center gap-1 text-amber-600 text-xs bg-amber-50 px-2 py-1 rounded">
+              {!isCheckinAvailable && daysUntilEvent && daysUntilEvent > 0 && (
+                <div className="absolute -top-8 right-0 flex items-center gap-1 text-amber-600 text-xs bg-amber-50 px-2 py-1 rounded whitespace-nowrap">
                   <FiAlertCircle size={12} />
                   <span>
                     Available in {daysUntilEvent} day
@@ -712,12 +916,12 @@ const EventDetails = () => {
               <NavLink
                 to={`/dashboard/checkin-user/${id}`}
                 className={`w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-sm font-medium flex gap-2 items-center justify-center transition-colors ${
-                  isEventActive
+                  isCheckinAvailable && !isEventPassed
                     ? "bg-[#27187E] text-white cursor-pointer hover:bg-[#1f0f5a]"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none"
                 }`}
                 onClick={(e) => {
-                  if (!isEventActive) {
+                  if (!isCheckinAvailable || isEventPassed) {
                     e.preventDefault();
                   }
                 }}
@@ -780,11 +984,19 @@ const EventDetails = () => {
                 />
                 <input
                   type="text"
-                  placeholder="Search email address, attendee name or code"
+                  placeholder="Search by name, email, or ticket code..."
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  className="w-full h-11 pl-12 pr-4 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full h-11 pl-12 pr-10 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+                {searchQuery && (
+                  <button
+                    onClick={clearSearch}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <FiX size={18} />
+                  </button>
+                )}
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
                 <select
@@ -792,12 +1004,40 @@ const EventDetails = () => {
                   onChange={(e) => handleFilterChange(e.target.value)}
                   className="w-full sm:w-auto h-11 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
                 >
-                  <option value="All">All</option>
+                  <option value="All">All Attendees</option>
                   <option value="Checked In">Checked In</option>
                   <option value="Pending">Pending</option>
                 </select>
               </div>
             </div>
+
+            {/* Active filters display */}
+            {(searchQuery || filterStatus !== "All") && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {searchQuery && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
+                    Search: "{searchQuery}"
+                    <button
+                      onClick={clearSearch}
+                      className="ml-1 hover:text-blue-900"
+                    >
+                      <FiX size={14} />
+                    </button>
+                  </span>
+                )}
+                {filterStatus !== "All" && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm">
+                    Status: {filterStatus}
+                    <button
+                      onClick={() => handleFilterChange("All")}
+                      className="ml-1 hover:text-purple-900"
+                    >
+                      <FiX size={14} />
+                    </button>
+                  </span>
+                )}
+              </div>
+            )}
 
             {allAttendees.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 sm:py-20 border border-gray-200 rounded-lg">
@@ -809,18 +1049,30 @@ const EventDetails = () => {
                   />
                 </div>
                 <p className="text-sm sm:text-base text-gray-600 font-medium mb-6 sm:mb-8 text-center px-4">
-                  Your guest list is currently empty
+                  {searchQuery || filterStatus !== "All"
+                    ? "No attendees match your search criteria"
+                    : "Your guest list is currently empty"}
                 </p>
-                <button
-                  onClick={copyEventLink}
-                  className="inline-flex items-center gap-2 px-5 sm:px-7 py-2 sm:py-3 bg-indigo-900 hover:bg-indigo-950 text-white text-sm sm:text-base font-medium rounded-lg transition-colors min-w-35"
-                >
-                  <FiCopy size={16} />
-                  <span>{copyButtonText}</span>
-                </button>
+                {(searchQuery || filterStatus !== "All") && (
+                  <button
+                    onClick={() => {
+                      clearSearch();
+                      handleFilterChange("All");
+                    }}
+                    className="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                  >
+                    Clear Filters
+                  </button>
+                )}
               </div>
             ) : (
               <>
+                {/* Results count */}
+                <div className="mb-4 text-sm text-gray-600">
+                  Showing {allAttendees.length} of {pagination.totalAttendees}{" "}
+                  attendees
+                </div>
+
                 <div className="hidden lg:block overflow-x-auto">
                   <table className="w-full">
                     <thead>
