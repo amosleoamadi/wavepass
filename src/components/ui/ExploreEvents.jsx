@@ -133,8 +133,16 @@ const ExploreEvents = () => {
 
   const categoryItems = [
     { key: "All Events", label: "All Events" },
-    { key: "Music", label: "Music" },
-    { key: "Tech", label: "Tech" },
+    { key: "Art & Culture", label: "Art & Culture" },
+    { key: "Career & Business", label: "Career & Business" },
+    { key: "Community", label: "Community" },
+    { key: "Conference", label: "Conference" },
+    { key: "Entertainment", label: "Entertainment" },
+    { key: "Food & Drink", label: "Food & Drink" },
+    { key: "Health", label: "Health" },
+    { key: "Spirituality & Religion", label: "Spirituality & Religion" },
+    { key: "Sports & Wellness", label: "Sports & Wellness" },
+    { key: "Others", label: "Others" },
   ];
 
   const priceItems = [

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Minus, Plus, Loader2, AlertCircle } from "lucide-react";
-import { Skeleton, ConfigProvider, message } from "antd";
+import { Minus, Plus, Loader2, AlertCircle, CheckCircle2 } from "lucide-react"; // Added CheckCircle2
+import { Skeleton, ConfigProvider, message, Alert } from "antd"; // Added Alert
 import {
   useGetEventDetailsQuery,
   useCheckoutTicketMutation,
@@ -12,20 +12,27 @@ const EventTicket = () => {
   const eventKey = searchParams.get("key");
   const navigate = useNavigate();
 
+  // 1. Capture full mutation state
+  const [
+    checkoutTicket,
+    {
+      isLoading: isSubmitting,
+      isSuccess,
+      isError: isMutationError,
+      error: mutationError,
+      data: mutationData,
+    },
+  ] = useCheckoutTicketMutation();
+
   const { data: response, isLoading: isFetching } = useGetEventDetailsQuery(
     eventKey,
-    {
-      skip: !eventKey,
-    },
+    { skip: !eventKey },
   );
-  const event = response?.data;
 
+  const event = response?.data;
   const purchaseLimit = event?.limit || 1;
   const remainingTickets = (event?.quantity || 0) - (event?.ticketSold || 0);
   const maxAllowed = Math.min(purchaseLimit, remainingTickets);
-
-  const [checkoutTicket, { isLoading: isSubmitting }] =
-    useCheckoutTicketMutation();
 
   const [quantity, setQuantity] = useState(1);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
@@ -100,16 +107,14 @@ const EventTicket = () => {
         ...payload,
       }).unwrap();
 
-      message.success(result?.message || "Checkout successful!");
-
       if (result.redirectUrl) {
         window.location.href = result.redirectUrl;
       } else {
         const firstTicket = Array.isArray(result.data)
           ? result?.data[0]
           : result?.data;
-        const eventId = firstTicket?.eventId;
         const tag = firstTicket?.tag;
+        const eventId = firstTicket?.eventId;
 
         navigate(`/ticket-download?tag=${tag}&eventId=${eventId}`, {
           state: {
@@ -119,11 +124,8 @@ const EventTicket = () => {
         });
       }
     } catch (err) {
-      // DISPLAY ERROR MESSAGE FROM BACKEND
       const errorMsg =
         err?.data?.message || "Checkout failed. Please try again.";
-      message.error(errorMsg);
-      console.error("Checkout failed", err);
     }
   };
 
@@ -156,6 +158,37 @@ const EventTicket = () => {
               <h2 className="text-xl font-bold text-gray-800 mb-8 tracking-tight">
                 Ticket Details
               </h2>
+
+              <div className="mb-6">
+                {isMutationError && (
+                  <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 animate-in fade-in zoom-in duration-300">
+                    <AlertCircle size={18} className="shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold uppercase tracking-wider">
+                        Checkout Error
+                      </p>
+                      <p className="text-sm font-medium">
+                        {mutationError?.data?.message ||
+                          "Something went wrong. Please try again."}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {isSuccess && mutationData?.message && (
+                  <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-100 rounded-xl text-green-700 animate-in fade-in zoom-in duration-300">
+                    <CheckCircle2 size={18} className="shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold uppercase tracking-wider">
+                        Success
+                      </p>
+                      <p className="text-sm font-medium">
+                        {mutationData.message}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <form onSubmit={handleCheckout} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -209,8 +242,7 @@ const EventTicket = () => {
                   <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-lg text-[11px] font-bold">
                     <AlertCircle size={14} />
                     <span>
-                      Maximum limit of {purchaseLimit} tickets per person
-                      reached.
+                      Maximum limit of {purchaseLimit} tickets reached.
                     </span>
                   </div>
                 )}
@@ -231,7 +263,6 @@ const EventTicket = () => {
                             ? "Primary Booker"
                             : `Attendee ${index + 1}`}
                         </h4>
-
                         <div className="space-y-4">
                           <div className="space-y-2">
                             <label className="text-[11px] font-bold text-gray-400 uppercase">
@@ -246,7 +277,6 @@ const EventTicket = () => {
                               className="w-full border border-gray-100 bg-gray-50/50 rounded-xl px-4 py-3 text-sm focus:border-[#241B7A] outline-none transition-all"
                             />
                           </div>
-
                           <div className="space-y-2">
                             <label className="text-[11px] font-bold text-gray-400 uppercase">
                               Email Address
@@ -261,7 +291,6 @@ const EventTicket = () => {
                               className="w-full border border-gray-100 bg-gray-50/50 rounded-xl px-4 py-3 text-sm focus:border-[#241B7A] outline-none transition-all"
                             />
                           </div>
-
                           <div className="space-y-2">
                             <label className="text-[11px] font-bold text-gray-400 uppercase">
                               Phone Number

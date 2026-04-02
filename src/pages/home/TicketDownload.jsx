@@ -75,7 +75,6 @@ const TicketDownload = () => {
   };
 
   const handleShare = (attendee) => {
-    // Basic share logic placeholder to keep the onClick happy
     message.info(`Sharing ticket for ${attendee.fullname}`);
   };
 
@@ -100,7 +99,10 @@ const TicketDownload = () => {
 
         {/* Top Nav - X REMOVED */}
         <div className="w-full max-w-5xl flex items-center justify-between z-20 mb-6 md:absolute md:top-8 md:px-8">
-          <div className="bg-white rounded-xl px-3 py-2 flex items-center gap-2 shadow-2xl border border-white/20">
+          <div
+            onClick={() => navigate("/")}
+            className="bg-white rounded-xl px-3 py-2 flex items-center gap-2 cursor-pointer shadow-2xl border border-white/20"
+          >
             <div className="w-6 h-6 md:w-8 md:h-8 bg-[#241B7A] rounded-lg flex items-center justify-center text-white font-black text-[8px] md:text-[10px]">
               WP
             </div>
